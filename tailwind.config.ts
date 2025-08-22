@@ -61,7 +61,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				masquerade: {
+					purple: 'hsl(var(--masquerade-purple))',
+					gold: 'hsl(var(--masquerade-gold))',
+					deep: 'hsl(var(--masquerade-deep))',
+					shadow: 'hsl(var(--masquerade-shadow))',
+					accent: 'hsl(var(--masquerade-accent))'
 				}
+			},
+			backgroundImage: {
+				'gradient-masquerade': 'var(--gradient-masquerade)',
+				'gradient-gold': 'var(--gradient-gold)',
+				'gradient-deep': 'var(--gradient-deep)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
