@@ -21,6 +21,7 @@ export const useGameState = (isHost: boolean) => {
   const [echoes, setEchoes] = useState<Echo[]>([]);
   const [privateMessages, setPrivateMessages] = useState<PrivateMessage[]>([]);
   const [sentMessagesThisRound, setSentMessagesThisRound] = useState(0);
+  const spyTarget = useRef<string | null>(null);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -39,7 +40,7 @@ export const useGameState = (isHost: boolean) => {
     const roleAssignments: Role[] = [];
 
     // Calculate role distribution based on player count
-    const spyCount = Math.max(1, Math.floor(players.length * 0.25));
+    const spyCount = Math.max(2, Math.floor(players.length * 0.25));
     const hasAssassin = players.length >= 7;
     const hasWatcher = players.length >= 9;
 
@@ -59,12 +60,17 @@ export const useGameState = (isHost: boolean) => {
     // Shuffle roles and assign
     roleAssignments.sort(() => Math.random() - 0.5);
 
-    return shuffled.map((player, index) => ({
-      ...player,
-      role: roleAssignments[index],
-      target: getTarget(player, roleAssignments[index], shuffled),
-      isAlive: true,
-    }));
+    return shuffled
+      .map((player, index) => ({
+        ...player,
+        role: roleAssignments[index],
+        target: undefined,
+        isAlive: true,
+      }))
+      .map((player, _, pl) => ({
+        ...player,
+        target: getTarget(player, player.role, pl),
+      }));
   }, []);
 
   const getTarget = useCallback(
@@ -72,17 +78,25 @@ export const useGameState = (isHost: boolean) => {
       if (role !== "Spy" && role !== "Assassin") {
         return undefined;
       }
+      if (role === "Spy" && spyTarget.current) {
+        return spyTarget.current;
+      }
       let target: Player | undefined;
       while (!target) {
         const randomIndex = Math.floor(Math.random() * players.length);
         if (players[randomIndex].id !== currentPlayer.id) {
+          if (role === "Spy" && players[randomIndex].role === "Spy") {
+            continue;
+          }
           target = players[randomIndex];
         }
-        console.log(target);
+      }
+      if (role === "Spy") {
+        spyTarget.current = target.name;
       }
       return target.name;
     },
-    []
+    [spyTarget.current]
   );
 
   const generateSingleEcho = useCallback((round: number): Echo => {

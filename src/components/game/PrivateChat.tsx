@@ -1,12 +1,24 @@
-import { useState } from 'react';
-import { Player, PrivateMessage, DEFAULT_GAME_CONFIG } from '@/types/game';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MessageCircle, Send, Users } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { Player, PrivateMessage, DEFAULT_GAME_CONFIG } from "@/types/game";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { MessageCircle, Send, Users } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface PrivateChatProps {
   messages: PrivateMessage[];
@@ -21,21 +33,22 @@ const PrivateChat = ({
   currentPlayer,
   players,
   sentMessagesThisRound,
-  onSendMessage
+  onSendMessage,
 }: PrivateChatProps) => {
-  const [selectedRecipient, setSelectedRecipient] = useState<string>('');
-  const [messageText, setMessageText] = useState('');
+  const [selectedRecipient, setSelectedRecipient] = useState<string>("");
+  const [messageText, setMessageText] = useState("");
   const { toast } = useToast();
 
-  const remainingMessages = DEFAULT_GAME_CONFIG.maxPrivateMessagesPerRound - sentMessagesThisRound;
-  const otherPlayers = players.filter(p => p.id !== currentPlayer.id);
+  const remainingMessages =
+    DEFAULT_GAME_CONFIG.maxPrivateMessagesPerRound - sentMessagesThisRound;
+  const otherPlayers = players.filter((p) => p.id !== currentPlayer.id);
 
   const handleSendMessage = () => {
     if (!selectedRecipient) {
       toast({
         title: "No Recipient",
         description: "Please select someone to send the message to.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -44,7 +57,7 @@ const PrivateChat = ({
       toast({
         title: "Empty Message",
         description: "Please enter a message to send.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -53,7 +66,7 @@ const PrivateChat = ({
       toast({
         title: "Message Too Long",
         description: `Messages cannot exceed ${DEFAULT_GAME_CONFIG.maxMessageLength} characters.`,
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -62,7 +75,7 @@ const PrivateChat = ({
       toast({
         title: "Message Limit Reached",
         description: `You can only send ${DEFAULT_GAME_CONFIG.maxPrivateMessagesPerRound} messages per round.`,
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -72,13 +85,13 @@ const PrivateChat = ({
       fromId: currentPlayer.id,
       toId: selectedRecipient,
       content: messageText.trim(),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     onSendMessage(message);
-    setMessageText('');
-    setSelectedRecipient('');
-    
+    setMessageText("");
+    setSelectedRecipient("");
+
     toast({
       title: "Message Sent",
       description: "Your whisper has been delivered...",
@@ -86,10 +99,12 @@ const PrivateChat = ({
   };
 
   const getPlayerName = (playerId: string) => {
-    return players.find(p => p.id === playerId)?.name || 'Unknown';
+    return players.find((p) => p.id === playerId)?.fakeName || "Unknown";
   };
 
-  const myMessages = messages.filter(m => m.fromId === currentPlayer.id || m.toId === currentPlayer.id);
+  const myMessages = messages.filter(
+    (m) => m.fromId === currentPlayer.id || m.toId === currentPlayer.id
+  );
 
   return (
     <div className="space-y-4">
@@ -105,13 +120,17 @@ const PrivateChat = ({
             </Badge>
           </CardTitle>
           <CardDescription>
-            Send secret messages to other players (max {DEFAULT_GAME_CONFIG.maxMessageLength} characters)
+            Send secret messages to other players (max{" "}
+            {DEFAULT_GAME_CONFIG.maxMessageLength} characters)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="md:col-span-1">
-              <Select value={selectedRecipient} onValueChange={setSelectedRecipient}>
+              <Select
+                value={selectedRecipient}
+                onValueChange={setSelectedRecipient}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select recipient" />
                 </SelectTrigger>
@@ -120,7 +139,7 @@ const PrivateChat = ({
                     <SelectItem key={player.id} value={player.id}>
                       <div className="flex items-center space-x-2">
                         <div className="w-2 h-2 rounded-full bg-primary" />
-                        <span>{player.name}</span>
+                        <span>{player.fakeName}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -133,10 +152,10 @@ const PrivateChat = ({
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
                 maxLength={DEFAULT_GAME_CONFIG.maxMessageLength}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
               />
-              <Button 
-                variant="mystical" 
+              <Button
+                variant="mystical"
                 onClick={handleSendMessage}
                 disabled={remainingMessages <= 0}
               >
@@ -171,22 +190,27 @@ const PrivateChat = ({
                 .sort((a, b) => b.timestamp - a.timestamp)
                 .map((message) => {
                   const isFromMe = message.fromId === currentPlayer.id;
-                  const otherPersonName = isFromMe 
+                  const otherPersonName = isFromMe
                     ? getPlayerName(message.toId)
                     : getPlayerName(message.fromId);
 
                   return (
-                    <div 
+                    <div
                       key={message.id}
                       className={`p-3 rounded-lg ${
-                        isFromMe 
-                          ? 'bg-primary/10 border border-primary/20 ml-8' 
-                          : 'bg-secondary/10 border border-secondary/20 mr-8'
+                        isFromMe
+                          ? "bg-primary/10 border border-primary/20 ml-8"
+                          : "bg-secondary/10 border border-secondary/20 mr-8"
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <Badge variant={isFromMe ? "default" : "secondary"} className="text-xs">
-                          {isFromMe ? `To ${otherPersonName}` : `From ${otherPersonName}`}
+                        <Badge
+                          variant={isFromMe ? "default" : "secondary"}
+                          className="text-xs"
+                        >
+                          {isFromMe
+                            ? `To ${otherPersonName}`
+                            : `From ${otherPersonName}`}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
                           {new Date(message.timestamp).toLocaleTimeString()}

@@ -1,30 +1,37 @@
-import { Role, ROLE_DESCRIPTIONS, WIN_CONDITIONS } from '@/types/game';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Eye, Sword, Users, UserX } from 'lucide-react';
+import { Player, Role, ROLE_DESCRIPTIONS, WIN_CONDITIONS } from "@/types/game";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Eye, Sword, Users, UserX } from "lucide-react";
 
 interface RoleCardProps {
   role: Role;
   isRevealed: boolean;
+  players: Player[];
 }
 
 const roleIcons = {
   Spy: UserX,
   Guest: Users,
   Assassin: Sword,
-  Watcher: Eye
+  Watcher: Eye,
 };
 
 const roleColors = {
   Spy: "destructive",
-  Guest: "default", 
+  Guest: "default",
   Assassin: "outline",
-  Watcher: "secondary"
+  Watcher: "secondary",
 } as const;
 
-const RoleCard = ({ role, isRevealed }: RoleCardProps) => {
+const RoleCard = ({ role, isRevealed, players }: RoleCardProps) => {
   const Icon = roleIcons[role];
-  
+
   if (!isRevealed) {
     return (
       <Card className="max-w-md mx-auto mysterious-shadow animate-masquerade-pulse">
@@ -60,7 +67,7 @@ const RoleCard = ({ role, isRevealed }: RoleCardProps) => {
             {ROLE_DESCRIPTIONS[role]}
           </CardDescription>
         </div>
-        
+
         <div>
           <h4 className="font-semibold mb-2 text-secondary">Win Condition:</h4>
           <CardDescription className="text-sm">
@@ -68,15 +75,23 @@ const RoleCard = ({ role, isRevealed }: RoleCardProps) => {
           </CardDescription>
         </div>
 
-        {role === 'Spy' && (
+        {role === "Spy" && (
           <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
             <p className="text-sm text-destructive font-medium">
-              🤝 Work with other spies to eliminate guests
+              🤝 Work with other spies to reveal the target
+            </p>
+            <p className="text-sm text-destructive font-medium">
+              {players.filter((p) => p.role === "Spy").length} spies (
+              {players
+                .filter((p) => p.role === "Spy")
+                .map((p) => p.fakeName)
+                .join(", ")}
+              )
             </p>
           </div>
         )}
 
-        {role === 'Guest' && (
+        {role === "Guest" && (
           <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
             <p className="text-sm text-primary font-medium">
               🛡️ Trust carefully - anyone could be a threat
@@ -84,7 +99,7 @@ const RoleCard = ({ role, isRevealed }: RoleCardProps) => {
           </div>
         )}
 
-        {role === 'Assassin' && (
+        {role === "Assassin" && (
           <div className="p-3 rounded-lg bg-accent/10 border border-accent/20">
             <p className="text-sm text-accent font-medium">
               🎯 You have one target - choose your moment wisely
@@ -92,7 +107,7 @@ const RoleCard = ({ role, isRevealed }: RoleCardProps) => {
           </div>
         )}
 
-        {role === 'Watcher' && (
+        {role === "Watcher" && (
           <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20">
             <p className="text-sm text-secondary font-medium">
               👁️ Observe everyone - you're the guests' best hope

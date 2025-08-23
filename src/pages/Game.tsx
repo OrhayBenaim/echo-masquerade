@@ -45,12 +45,12 @@ const Game = () => {
 
   // Handle role assignment phase
   useEffect(() => {
-    // if (gameState.phase === 'role-assignment' && currentPlayer?.role) {
-    //   setShowRoleCard(true);
-    //   setTimeout(() => {
-    //     setShowRoleCard(false);
-    //   }, 5000);
-    // }
+    if (gameState.phase === "role-assignment" && currentPlayer?.role) {
+      setShowRoleCard(true);
+      setTimeout(() => {
+        setShowRoleCard(false);
+      }, 5000);
+    }
   }, [gameState.phase, currentPlayer?.role]);
 
   const handleStartGame = () => {
@@ -99,7 +99,11 @@ const Game = () => {
   if (showRoleCard && currentPlayer?.role) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-deep p-4">
-        <RoleCard role={currentPlayer.role} isRevealed={true} />
+        <RoleCard
+          role={currentPlayer.role}
+          isRevealed={true}
+          players={gameState.players}
+        />
       </div>
     );
   }
