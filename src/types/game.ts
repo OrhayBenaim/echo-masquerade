@@ -61,15 +61,16 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
 };
 
 export const ROLE_DESCRIPTIONS = {
-  Spy: "Infiltrate and dominate. Work with other spies to eliminate guests.",
-  Guest: "Stay vigilant. Identify and vote out the spies to survive.",
+  Spy: "Infiltrate and dominate. Work with other spies to steal information.",
+  Guest:
+    "Stay vigilant. Identify and vote out the spies and assassins to survive.",
   Assassin: "One target, one chance. Eliminate your assigned target to win.",
   Watcher: "Observe and expose. Find and eliminate a spy or assassin to win.",
 } as const;
 
 export const WIN_CONDITIONS = {
-  Spy: "Spies equal or outnumber remaining players",
+  Spy: "Successfully reveal the target, you only have 1 chance",
   Guest: "All spies and assassins are eliminated",
   Assassin: "Successfully eliminate your assigned target",
-  Watcher: "Successfully eliminate a spy or assassin",
+  Watcher: "Successfully eliminate all the spies and assassins",
 } as const;

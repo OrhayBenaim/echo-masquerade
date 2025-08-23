@@ -99,11 +99,7 @@ const Game = () => {
   if (showRoleCard && currentPlayer?.role) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-deep p-4">
-        <RoleCard
-          role={currentPlayer.role}
-          isRevealed={true}
-          players={gameState.players}
-        />
+        <RoleCard role={currentPlayer.role} players={gameState.players} />
       </div>
     );
   }

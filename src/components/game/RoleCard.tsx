@@ -11,7 +11,6 @@ import { Eye, Sword, Users, UserX } from "lucide-react";
 
 interface RoleCardProps {
   role: Role;
-  isRevealed: boolean;
   players: Player[];
 }
 
@@ -29,23 +28,8 @@ const roleColors = {
   Watcher: "secondary",
 } as const;
 
-const RoleCard = ({ role, isRevealed, players }: RoleCardProps) => {
+const RoleCard = ({ role, players }: RoleCardProps) => {
   const Icon = roleIcons[role];
-
-  if (!isRevealed) {
-    return (
-      <Card className="max-w-md mx-auto mysterious-shadow animate-masquerade-pulse">
-        <CardContent className="flex items-center justify-center h-48">
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-masquerade flex items-center justify-center mx-auto">
-              <span className="text-2xl">🎭</span>
-            </div>
-            <p className="text-muted-foreground">Revealing your role...</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card className="max-w-md mx-auto mysterious-shadow">

@@ -66,10 +66,10 @@ Each round (3–5 minutes) has 3 phases:
    - Votes reveal roles and shift dynamics.
 
 6. **Win Conditions**
-   - **Spies**: Win by unmasking all but one player.
+   - **Spies**: Win by unmasking your target.
    - **Guests**: Win by surviving until the end.
    - **Assassins**: Win by eliminating their targets.
-   - **Watchers**: Win by exposing the Assassin or Spy.
+   - **Watchers**: Win by exposing all Assassin and Spy.
 
 ---
 
