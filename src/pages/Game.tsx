@@ -60,7 +60,7 @@ const Game = () => {
 
   // Handle host setup
   useEffect(() => {
-    if (isHost && !currentPlayer) {
+    if (isHost && !currentPlayer && hostHook.isConnected) {
       const hostPlayer: Player = {
         id: 'host',
         name: 'Host',
@@ -69,11 +69,12 @@ const Game = () => {
       };
       setCurrentPlayer(hostPlayer);
       
+      // Add host to players list
       if ('actions' in hostHook && 'addPlayer' in hostHook.actions) {
         hostHook.actions.addPlayer(hostPlayer);
       }
     }
-  }, [isHost, currentPlayer, hostHook]);
+  }, [isHost, currentPlayer, hostHook.isConnected, hostHook]);
 
   // Handle role assignment phase
   useEffect(() => {

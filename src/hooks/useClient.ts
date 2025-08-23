@@ -85,14 +85,10 @@ export const useClient = () => {
   const handleHostMessage = useCallback((message: any) => {
     switch (message.type) {
       case 'game-state-update':
+      case 'game-state-sync':
         setGameState(message.gameState);
         if (message.echoes) setEchoes(message.echoes);
         if (message.privateMessages) setPrivateMessages(message.privateMessages);
-        break;
-      case 'game-state-sync':
-        setGameState(message.gameState);
-        setEchoes(message.echoes || []);
-        setPrivateMessages(message.privateMessages || []);
         break;
       default:
         console.warn('Unknown message type:', message.type);
