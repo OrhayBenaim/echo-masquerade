@@ -1,73 +1,103 @@
-# Welcome to your Lovable project
+# Echoes of the Masquerade
 
-## Project info
+A social deduction web game set in a mysterious masquerade ball. Players take on secret roles and must bluff, deceive, and deduce to achieve their hidden objectives.
 
-**URL**: https://lovable.dev/projects/a33351e8-43bf-4a3e-bb04-44ae1c4d5755
+---
 
-## How can I edit this code?
+## 🎭 Game Overview
 
-There are several ways of editing your application.
+- **Setting**: A masquerade ball full of hidden identities.
+- **Players**: Each player is secretly assigned a role with unique objectives.
+- **Objective**: Use clues, communication, and deception to survive or accomplish your role’s win condition.
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/a33351e8-43bf-4a3e-bb04-44ae1c4d5755) and start prompting.
+## 🕹 Core Gameplay
 
-Changes made via Lovable will be committed automatically to this repo.
+### Roles
 
-**Use your preferred IDE**
+Each game assigns secret roles to players:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **Spy**: Uncover the identities of other players.
+- **Guest**: Survive the night without being eliminated.
+- **Assassin**: Eliminate a specific target.
+- **Watcher**: Prevent eliminations and gather evidence.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Communication
 
-Follow these steps:
+- Players can make **open speeches** (accuse, lie, mislead).
+- Players can use **limited private chats** per round (via in-game messaging).
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Rounds
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Each round (3–5 minutes) has 3 phases:
 
-# Step 3: Install the necessary dependencies.
-npm i
+1. **Gather Clues** – Players receive vague hints about others.
+2. **Discuss & Accuse** – Players debate openly, accuse others.
+3. **Vote** – Players vote on someone to be unmasked or eliminated.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+### The Echoes Mechanic
 
-**Edit a file directly in GitHub**
+- At the start of each round, all players receive a cryptic “Echo” message.
+- Echoes may contain **truths, lies, or irrelevant noise**, creating paranoia.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+---
 
-**Use GitHub Codespaces**
+## 🌀 Game Loop
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. **Host Creates a Room**
 
-## What technologies are used for this project?
+   - A host starts a game session, generating a **Room ID**.
 
-This project is built with:
+2. **Players Join**
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+   - Players connect via browser using the **Room ID** (PeerJS connection, no backend).
 
-## How can I deploy this project?
+3. **Assign Roles**
 
-Simply open [Lovable](https://lovable.dev/projects/a33351e8-43bf-4a3e-bb04-44ae1c4d5755) and click on Share -> Publish.
+   - Each player secretly receives their role and objectives.
 
-## Can I connect a custom domain to my Lovable project?
+4. **Play Rounds**
 
-Yes, you can!
+   - Players gather clues, send private chats, analyze echoes, and vote.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+5. **Reveal & Eliminate**
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+   - Votes reveal roles and shift dynamics.
+
+6. **Win Conditions**
+   - **Spies**: Win by unmasking all but one player.
+   - **Guests**: Win by surviving until the end.
+   - **Assassins**: Win by eliminating their targets.
+   - **Watchers**: Win by exposing the Assassin or Spy.
+
+---
+
+## 🔁 Replayability
+
+- **Randomized Roles** each game.
+- **Dynamic Echo Variations** keep each round fresh.
+- **Game Modes** (future):
+  - **Double Agents** – players hold dual roles.
+  - **Time Pressure** – faster rounds for more chaos.
+
+---
+
+## 🛠 Technical Details
+
+- **Platform**: Web only (no mobile app).
+- **Networking**: Peer-to-peer connections via **PeerJS**.
+- **Room System**:
+  - Host generates a **Room ID**.
+  - Clients join with the Room ID.
+- **No Backend** – all game state is handled client-side with peer-to-peer communication.
+
+---
+
+## 🚀 How to Run (Development)
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/yourusername/echoes-of-the-masquerade.git
+   cd echoes-of-the-masquerade
+   ```
