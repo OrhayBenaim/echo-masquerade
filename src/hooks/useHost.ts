@@ -24,11 +24,9 @@ export const useHost = (roomId: string) => {
         peerId.current = id;
         setIsConnected(true);
         setConnectionError(null);
-        console.log('Host peer connected with ID:', id);
       });
 
       newPeer.on('error', (error) => {
-        console.error('Host peer error:', error);
         setConnectionError(error.message);
         setIsConnected(false);
       });
@@ -49,7 +47,6 @@ export const useHost = (roomId: string) => {
   const setupConnection = useCallback((conn: DataConnection) => {
     conn.on('open', () => {
       setConnections(prev => new Map(prev.set(conn.peer, conn)));
-      console.log('Player connected:', conn.peer);
       
       // Send current game state to new player
       conn.send({
@@ -61,7 +58,6 @@ export const useHost = (roomId: string) => {
     });
 
     conn.on('data', (data: any) => {
-      console.log('Host received action:', data.type, 'from', conn.peer);
       handleClientAction(data, conn.peer);
     });
 
@@ -74,7 +70,6 @@ export const useHost = (roomId: string) => {
       
       // Remove player from game
       actions.removePlayer(conn.peer);
-      console.log('Player disconnected:', conn.peer);
     });
 
     conn.on('error', (error) => {

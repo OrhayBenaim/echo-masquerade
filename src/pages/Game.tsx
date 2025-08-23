@@ -37,24 +37,26 @@ const Game = () => {
   // Handle client connection
   useEffect(() => {
     if (!isHost && roomId && playerName && !isConnected) {
-      const success = clientHook.actions.connectToHost(roomId);
-      if (success) {
-        // Set up current player for client
-        const newPlayer: Player = {
-          id: `player-${Date.now()}`,
-          name: playerName,
-          isHost: false,
-          isAlive: true
-        };
-        setCurrentPlayer(newPlayer);
-        
-        // Send join message after connection is established
-        setTimeout(() => {
-          clientHook.actions.joinGame(playerName);
-        }, 1000);
-      }
+      clientHook.actions.connectToHost(roomId);
     }
   }, [isHost, roomId, playerName, isConnected, clientHook]);
+
+  // Handle successful connection and join game
+  useEffect(() => {
+    if (!isHost && isConnected && playerName && !currentPlayer) {
+      // Set up current player for client
+      const newPlayer: Player = {
+        id: `player-${Date.now()}`,
+        name: playerName,
+        isHost: false,
+        isAlive: true
+      };
+      setCurrentPlayer(newPlayer);
+      
+      // Send join message immediately after connection
+      clientHook.actions.joinGame(playerName);
+    }
+  }, [isHost, isConnected, playerName, currentPlayer, clientHook]);
 
   // Handle host setup
   useEffect(() => {

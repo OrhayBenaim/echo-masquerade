@@ -9,5 +9,4 @@ export const handlePlayerJoin = (action: any, peerId: string, gameActions: any) 
   };
   
   gameActions.addPlayer(newPlayer);
-  console.log(`Player ${action.playerName} joined with ID: ${peerId}`);
 };

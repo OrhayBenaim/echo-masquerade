@@ -31,11 +31,9 @@ export const useClient = () => {
 
       newPeer.on('open', (id) => {
         peerId.current = id;
-        console.log('Client peer connected with ID:', id);
       });
 
       newPeer.on('error', (error) => {
-        console.error('Client peer error:', error);
         setConnectionError(error.message);
         setIsConnected(false);
       });
@@ -59,18 +57,15 @@ export const useClient = () => {
         setHostConnection(conn);
         setIsConnected(true);
         setConnectionError(null);
-        console.log('Connected to host:', roomId);
       });
 
       conn.on('data', (data: any) => {
-        console.log('Client received:', data.type);
         handleHostMessage(data);
       });
 
       conn.on('close', () => {
         setHostConnection(null);
         setIsConnected(false);
-        console.log('Disconnected from host');
       });
 
       conn.on('error', (error) => {
