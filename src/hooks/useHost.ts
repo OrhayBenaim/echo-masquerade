@@ -75,7 +75,7 @@ export const useHost = (roomId: string, isHost: boolean) => {
         console.log(`Player connected: ${conn.peer}`);
 
         // Send current game state to new player
-        setTimeout(() => broadcastSync(), 100);
+        broadcastSync();
       });
 
       conn.on("data", (data: any) => {
@@ -123,9 +123,6 @@ export const useHost = (roomId: string, isHost: boolean) => {
         default:
           console.warn("Unknown action type:", action.type);
       }
-
-      // After processing any action, broadcast updated state
-      setTimeout(() => broadcastSync(), 100);
     },
     [actions, broadcastSync, peer.current]
   );
