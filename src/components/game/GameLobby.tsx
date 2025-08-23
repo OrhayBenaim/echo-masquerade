@@ -1,12 +1,18 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Users, Copy, Play, UserPlus, Crown } from 'lucide-react';
-import { Player, DEFAULT_GAME_CONFIG } from '@/types/game';
-import { useToast } from '@/hooks/use-toast';
-import MasqueradeLogo from './MasqueradeLogo';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Users, Copy, Play, UserPlus, Crown } from "lucide-react";
+import { Player, DEFAULT_GAME_CONFIG } from "@/types/game";
+import { useToast } from "@/hooks/use-toast";
+import MasqueradeLogo from "./MasqueradeLogo";
 
 interface GameLobbyProps {
   isHost: boolean;
@@ -18,17 +24,16 @@ interface GameLobbyProps {
   onPlayerNameChange?: (name: string) => void;
 }
 
-const GameLobby = ({ 
-  isHost, 
-  roomId, 
-  players, 
-  onCreateRoom, 
-  onJoinRoom, 
+const GameLobby = ({
+  isHost,
+  roomId,
+  players,
+  onCreateRoom,
+  onJoinRoom,
   onStartGame,
-  onPlayerNameChange 
 }: GameLobbyProps) => {
-  const [joinRoomId, setJoinRoomId] = useState('');
-  const [playerName, setPlayerName] = useState('');
+  const [joinRoomId, setJoinRoomId] = useState("");
+  const [playerName, setPlayerName] = useState("");
   const [showJoinForm, setShowJoinForm] = useState(!isHost);
   const { toast } = useToast();
 
@@ -43,7 +48,7 @@ const GameLobby = ({
       toast({
         title: "Copy Failed",
         description: "Please manually copy the Room ID.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -53,7 +58,7 @@ const GameLobby = ({
       toast({
         title: "Missing Information",
         description: "Please enter both Room ID and your name.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -65,7 +70,7 @@ const GameLobby = ({
       toast({
         title: "Not Enough Players",
         description: `Need at least ${DEFAULT_GAME_CONFIG.minPlayers} players to start.`,
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -84,18 +89,18 @@ const GameLobby = ({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button 
-              variant="masquerade" 
-              size="lg" 
+            <Button
+              variant="masquerade"
+              size="lg"
               className="w-full"
               onClick={onCreateRoom}
             >
               <Crown className="w-5 h-5" />
               Create Room
             </Button>
-            <Button 
-              variant="mystical" 
-              size="lg" 
+            <Button
+              variant="mystical"
+              size="lg"
               className="w-full"
               onClick={() => setShowJoinForm(true)}
             >
@@ -139,15 +144,15 @@ const GameLobby = ({
               />
             </div>
             <div className="flex space-x-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setShowJoinForm(false)}
                 className="w-full"
               >
                 Back
               </Button>
-              <Button 
-                variant="masquerade" 
+              <Button
+                variant="masquerade"
                 onClick={handleJoinRoom}
                 className="w-full"
               >
@@ -185,8 +190,8 @@ const GameLobby = ({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                variant="gold" 
+              <Button
+                variant="gold"
                 onClick={handleCopyRoomId}
                 className="w-full"
               >
@@ -205,7 +210,13 @@ const GameLobby = ({
                 <span>Players ({players.length})</span>
               </span>
               <div className="flex space-x-2">
-                <Badge variant={players.length >= DEFAULT_GAME_CONFIG.minPlayers ? "default" : "destructive"}>
+                <Badge
+                  variant={
+                    players.length >= DEFAULT_GAME_CONFIG.minPlayers
+                      ? "default"
+                      : "destructive"
+                  }
+                >
                   Min: {DEFAULT_GAME_CONFIG.minPlayers}
                 </Badge>
                 <Badge variant="outline">
@@ -217,7 +228,7 @@ const GameLobby = ({
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {players.map((player) => (
-                <div 
+                <div
                   key={player.id}
                   className="flex items-center space-x-2 p-3 rounded-lg bg-muted/50"
                 >
@@ -229,12 +240,12 @@ const GameLobby = ({
                 </div>
               ))}
             </div>
-            
+
             {isHost && players.length >= DEFAULT_GAME_CONFIG.minPlayers && (
               <div className="mt-6 pt-4 border-t">
-                <Button 
-                  variant="masquerade" 
-                  size="lg" 
+                <Button
+                  variant="masquerade"
+                  size="lg"
                   onClick={handleStartGame}
                   className="w-full"
                 >
@@ -243,10 +254,11 @@ const GameLobby = ({
                 </Button>
               </div>
             )}
-            
+
             {isHost && players.length < DEFAULT_GAME_CONFIG.minPlayers && (
               <div className="mt-4 text-center text-muted-foreground">
-                Waiting for {DEFAULT_GAME_CONFIG.minPlayers - players.length} more players...
+                Waiting for {DEFAULT_GAME_CONFIG.minPlayers - players.length}{" "}
+                more players...
               </div>
             )}
           </CardContent>

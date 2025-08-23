@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
-import { Player } from "@/types/game";
 import GameLobby from "@/components/game/GameLobby";
 import GameBoard from "@/components/game/GameBoard";
 import RoleCard from "@/components/game/RoleCard";
 import { useToast } from "@/hooks/use-toast";
 import { usePeerConnection } from "@/hooks/usePeerConnection";
 import { useHost } from "@/hooks/useHost";
-import { useClient } from "@/hooks/useClient";
 
 const Game = () => {
   const { roomId } = useParams<{ roomId: string }>();
