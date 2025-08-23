@@ -26,9 +26,6 @@ export const useClient = () => {
   const initializePeer = useCallback(() => {
     try {
       const newPeer = new Peer(undefined, {
-        host: 'peerjs-server.herokuapp.com',
-        port: 443,
-        secure: true,
         debug: 2
       });
 

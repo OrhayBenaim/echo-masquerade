@@ -17,9 +17,6 @@ export const useHost = (roomId: string) => {
   const initializePeer = useCallback(() => {
     try {
       const newPeer = new Peer(roomId, {
-        host: 'peerjs-server.herokuapp.com',
-        port: 443,
-        secure: true,
         debug: 2
       });
 
