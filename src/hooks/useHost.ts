@@ -44,17 +44,33 @@ export const useHost = (roomId: string) => {
     }
   }, [roomId]);
 
+  const broadcastToClients = useCallback((message: any) => {
+    connections.forEach((conn) => {
+      if (conn.open) {
+        conn.send(message);
+      }
+    });
+  }, [connections]);
+
+  const broadcastSync = useCallback(() => {
+    const syncMessage = {
+      type: 'game-state-sync',
+      gameState,
+      echoes,
+      privateMessages
+    };
+    
+    console.log('Host broadcasting sync:', syncMessage);
+    broadcastToClients(syncMessage);
+  }, [gameState, echoes, privateMessages, broadcastToClients]);
+
   const setupConnection = useCallback((conn: DataConnection) => {
     conn.on('open', () => {
       setConnections(prev => new Map(prev.set(conn.peer, conn)));
+      console.log(`Player connected: ${conn.peer}`);
       
       // Send current game state to new player
-      conn.send({
-        type: 'game-state-sync',
-        gameState,
-        echoes,
-        privateMessages
-      });
+      setTimeout(() => broadcastSync(), 100);
     });
 
     conn.on('data', (data: any) => {
@@ -68,16 +84,19 @@ export const useHost = (roomId: string) => {
         return newConnections;
       });
       
-      // Remove player from game
+      console.log(`Player disconnected: ${conn.peer}`);
+      // Remove player from game and broadcast update
       actions.removePlayer(conn.peer);
     });
 
     conn.on('error', (error) => {
       console.error('Connection error with', conn.peer, ':', error);
     });
-  }, [gameState, echoes, privateMessages, actions]);
+  }, [actions, broadcastSync]);
 
   const handleClientAction = useCallback((action: any, peerId: string) => {
+    console.log(`Host received action: ${action.type} from ${peerId}`);
+    
     switch (action.type) {
       case 'player-join':
         gameFunctions.handlePlayerJoin(action, peerId, actions);
@@ -91,15 +110,11 @@ export const useHost = (roomId: string) => {
       default:
         console.warn('Unknown action type:', action.type);
     }
-  }, [actions]);
+    
+    // After processing any action, broadcast updated state
+    setTimeout(() => broadcastSync(), 100);
+  }, [actions, broadcastSync]);
 
-  const broadcastToClients = useCallback((message: any) => {
-    connections.forEach((conn) => {
-      if (conn.open) {
-        conn.send(message);
-      }
-    });
-  }, [connections]);
 
   const disconnect = useCallback(() => {
     connections.forEach((conn) => conn.close());
@@ -111,17 +126,12 @@ export const useHost = (roomId: string) => {
     setIsConnected(false);
   }, [peer, connections]);
 
-  // Broadcast game state updates
+  // Broadcast game state updates when state changes
   useEffect(() => {
     if (isConnected && connections.size > 0) {
-      broadcastToClients({
-        type: 'game-state-update',
-        gameState,
-        echoes,
-        privateMessages
-      });
+      broadcastSync();
     }
-  }, [gameState, echoes, privateMessages, isConnected, connections.size, broadcastToClients]);
+  }, [gameState, echoes, privateMessages, isConnected, connections.size, broadcastSync]);
 
   // Initialize peer on mount
   useEffect(() => {
@@ -143,6 +153,7 @@ export const useHost = (roomId: string) => {
     actions: {
       ...actions,
       broadcastToClients,
+      broadcastSync,
       disconnect
     }
   };

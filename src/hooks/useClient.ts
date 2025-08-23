@@ -60,6 +60,7 @@ export const useClient = () => {
       });
 
       conn.on('data', (data: any) => {
+        console.log('Client received:', data.type);
         handleHostMessage(data);
       });
 
@@ -84,11 +85,11 @@ export const useClient = () => {
 
   const handleHostMessage = useCallback((message: any) => {
     switch (message.type) {
-      case 'game-state-update':
       case 'game-state-sync':
+        console.log('Client syncing game state:', message.gameState);
         setGameState(message.gameState);
-        if (message.echoes) setEchoes(message.echoes);
-        if (message.privateMessages) setPrivateMessages(message.privateMessages);
+        setEchoes(message.echoes || []);
+        setPrivateMessages(message.privateMessages || []);
         break;
       default:
         console.warn('Unknown message type:', message.type);
@@ -97,9 +98,11 @@ export const useClient = () => {
 
   const sendToHost = useCallback((action: any) => {
     if (hostConnection && hostConnection.open) {
+      console.log('Client sending action:', action.type);
       hostConnection.send(action);
       return true;
     }
+    console.warn('Cannot send to host: connection not open');
     return false;
   }, [hostConnection]);
 
