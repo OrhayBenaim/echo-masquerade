@@ -1,14 +1,21 @@
-import { useState, useCallback, useRef } from 'react';
-import { GameState, Player, Role, Echo, PrivateMessage, DEFAULT_GAME_CONFIG } from '@/types/game';
+import { useState, useCallback, useRef } from "react";
+import {
+  GameState,
+  Player,
+  Role,
+  Echo,
+  PrivateMessage,
+  DEFAULT_GAME_CONFIG,
+} from "@/types/game";
 
 export const useGameState = (isHost: boolean) => {
   const [gameState, setGameState] = useState<GameState>({
-    phase: 'lobby',
+    phase: "lobby",
     round: 0,
     timeRemaining: 0,
     players: [],
     votes: {},
-    roomId: ''
+    roomId: "",
   });
 
   const [echoes, setEchoes] = useState<Echo[]>([]);
@@ -23,7 +30,9 @@ export const useGameState = (isHost: boolean) => {
 
   const assignRoles = useCallback((players: Player[]): Player[] => {
     if (players.length < DEFAULT_GAME_CONFIG.minPlayers) {
-      throw new Error(`Need at least ${DEFAULT_GAME_CONFIG.minPlayers} players`);
+      throw new Error(
+        `Need at least ${DEFAULT_GAME_CONFIG.minPlayers} players`
+      );
     }
 
     const shuffled = [...players].sort(() => Math.random() - 0.5);
@@ -36,15 +45,15 @@ export const useGameState = (isHost: boolean) => {
 
     // Add roles
     for (let i = 0; i < spyCount; i++) {
-      roleAssignments.push('Spy');
+      roleAssignments.push("Spy");
     }
-    
-    if (hasAssassin) roleAssignments.push('Assassin');
-    if (hasWatcher) roleAssignments.push('Watcher');
+
+    if (hasAssassin) roleAssignments.push("Assassin");
+    if (hasWatcher) roleAssignments.push("Watcher");
 
     // Fill remaining with Guests
     while (roleAssignments.length < players.length) {
-      roleAssignments.push('Guest');
+      roleAssignments.push("Guest");
     }
 
     // Shuffle roles and assign
@@ -53,15 +62,11 @@ export const useGameState = (isHost: boolean) => {
     return shuffled.map((player, index) => ({
       ...player,
       role: roleAssignments[index],
-      isAlive: true
+      isAlive: true,
     }));
   }, []);
 
-  const generateEchoes = useCallback((round: number, players: Player[]): Echo[] => {
-    const truthRatio = [0.4, 0.5, 0.6][Math.min(round - 1, 2)];
-    const echoCount = Math.min(8, players.length);
-    const truthCount = Math.floor(echoCount * truthRatio);
-    
+  const generateSingleEcho = useCallback((round: number): Echo => {
     const echoTemplates = {
       RoleHint: [
         "A spy whispers in the shadows...",
@@ -69,7 +74,7 @@ export const useGameState = (isHost: boolean) => {
         "The watcher's eyes pierce the darkness...",
         "Guests huddle in fearful whispers...",
         "Trust is a luxury none can afford...",
-        "Someone here is not who they claim..."
+        "Someone here is not who they claim...",
       ],
       EventTease: [
         "A secret meeting was overheard...",
@@ -77,7 +82,7 @@ export const useGameState = (isHost: boolean) => {
         "A message was passed in the dark...",
         "Footsteps echo in empty halls...",
         "A mask slips, revealing truth beneath...",
-        "The clock ticks toward revelation..."
+        "The clock ticks toward revelation...",
       ],
       AlibiFrame: [
         "They claimed to be alone, but...",
@@ -85,104 +90,111 @@ export const useGameState = (isHost: boolean) => {
         "A witness saw something different...",
         "The timeline doesn't add up...",
         "Their alibi has holes...",
-        "Someone lies about their whereabouts..."
-      ]
+        "Someone lies about their whereabouts...",
+      ],
     };
 
-    const echoes: Echo[] = [];
-    const types: Array<Echo['type']> = ['RoleHint', 'EventTease', 'AlibiFrame'];
+    const types: Array<Echo["type"]> = ["RoleHint", "EventTease", "AlibiFrame"];
+    const type = types[Math.floor(Math.random() * types.length)];
+    const templates = echoTemplates[type];
+    const content = templates[Math.floor(Math.random() * templates.length)];
 
-    for (let i = 0; i < echoCount; i++) {
-      const type = types[i % types.length];
-      const templates = echoTemplates[type];
-      const content = templates[Math.floor(Math.random() * templates.length)];
-      
-      echoes.push({
-        id: `echo-${round}-${i}`,
-        content,
-        type,
-        isTruth: i < truthCount,
-        round
-      });
-    }
+    // 50% chance of being true for single echoes
+    const isTruth = Math.random() > 0.5;
 
-    return echoes.sort(() => Math.random() - 0.5);
+    return {
+      id: `echo-${round}-single`,
+      content,
+      type,
+      isTruth,
+      round,
+    };
   }, []);
 
   const startRound = useCallback(() => {
     if (!isHost) return;
 
     const newRound = gameState.round + 1;
-    const roundEchoes = generateEchoes(newRound, gameState.players);
-    
-    setEchoes(prev => [...prev, ...roundEchoes]);
+
+    // Generate 1 echo at the start of each round, except the first round
+    if (newRound > 1) {
+      const singleEcho = generateSingleEcho(newRound);
+      setEchoes((prev) => [...prev, singleEcho]);
+    }
+
     setSentMessagesThisRound(0);
-    
-    setGameState(prev => ({
+
+    setGameState((prev) => ({
       ...prev,
-      phase: 'round',
+      phase: "round",
       round: newRound,
       timeRemaining: DEFAULT_GAME_CONFIG.roundDuration,
-      votes: {}
+      votes: {},
     }));
 
     // Start timer
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
-      setGameState(prev => {
+      setGameState((prev) => {
         if (prev.timeRemaining <= 1) {
           clearInterval(timerRef.current!);
-          return { ...prev, phase: 'voting', timeRemaining: 60 };
+          return { ...prev, phase: "voting", timeRemaining: 60 };
         }
         return { ...prev, timeRemaining: prev.timeRemaining - 1 };
       });
     }, 1000);
-  }, [gameState, isHost, generateEchoes]);
+  }, [gameState, isHost, generateSingleEcho]);
 
   const castVote = useCallback((targetId: string, voterId: string) => {
-    setGameState(prev => ({
+    setGameState((prev) => ({
       ...prev,
-      votes: { ...prev.votes, [voterId]: targetId }
+      votes: { ...prev.votes, [voterId]: targetId },
     }));
   }, []);
 
-  const sendPrivateMessage = useCallback((message: PrivateMessage) => {
-    if (sentMessagesThisRound >= DEFAULT_GAME_CONFIG.maxPrivateMessagesPerRound) {
-      throw new Error('Maximum messages per round reached');
-    }
-    
-    setPrivateMessages(prev => [...prev, message]);
-    setSentMessagesThisRound(prev => prev + 1);
-  }, [sentMessagesThisRound]);
+  const sendPrivateMessage = useCallback(
+    (message: PrivateMessage) => {
+      if (
+        sentMessagesThisRound >= DEFAULT_GAME_CONFIG.maxPrivateMessagesPerRound
+      ) {
+        throw new Error("Maximum messages per round reached");
+      }
+
+      setPrivateMessages((prev) => [...prev, message]);
+      setSentMessagesThisRound((prev) => prev + 1);
+    },
+    [sentMessagesThisRound]
+  );
 
   const addPlayer = useCallback((player: Player) => {
-    setGameState(prev => ({
+    setGameState((prev) => ({
       ...prev,
-      players: [...prev.players, player]
+      players: [...prev.players, player],
     }));
   }, []);
 
   const removePlayer = useCallback((playerId: string) => {
-    setGameState(prev => ({
+    setGameState((prev) => ({
       ...prev,
-      players: prev.players.filter(p => p.id !== playerId)
+      players: prev.players.filter((p) => p.id !== playerId),
     }));
   }, []);
 
   const startGame = useCallback(() => {
-    if (!isHost || gameState.players.length < DEFAULT_GAME_CONFIG.minPlayers) return;
+    if (!isHost || gameState.players.length < DEFAULT_GAME_CONFIG.minPlayers)
+      return;
 
     const playersWithRoles = assignRoles(gameState.players);
-    
-    setGameState(prev => ({
+
+    setGameState((prev) => ({
       ...prev,
-      phase: 'role-assignment',
-      players: playersWithRoles
+      phase: "role-assignment",
+      players: playersWithRoles,
     }));
 
     // Move to first round after showing roles
     setTimeout(() => {
-      setGameState(prev => ({ ...prev, phase: 'round' }));
+      setGameState((prev) => ({ ...prev, phase: "round" }));
       startRound();
     }, 5000);
   }, [gameState.players, isHost, assignRoles, startRound]);
@@ -200,7 +212,7 @@ export const useGameState = (isHost: boolean) => {
       startRound,
       castVote,
       sendPrivateMessage,
-      setGameState
-    }
+      setGameState,
+    },
   };
 };

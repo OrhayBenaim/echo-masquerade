@@ -1,12 +1,17 @@
-import { Player } from '@/types/game';
+import { Player } from "@/types/game";
 
-export const handlePlayerJoin = (action: any, peerId: string, gameActions: any) => {
+export const handlePlayerJoin = (
+  action: any,
+  peerId: string,
+  isHost: boolean,
+  gameActions: any
+) => {
   const newPlayer: Player = {
     id: peerId,
     name: action.playerName,
-    isHost: false,
-    isAlive: true
+    isHost: isHost,
+    isAlive: true,
   };
-  
+
   gameActions.addPlayer(newPlayer);
 };

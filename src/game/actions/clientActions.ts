@@ -1,22 +1,31 @@
-import { PrivateMessage } from '@/types/game';
+import { PrivateMessage } from "@/types/game";
 
-export const joinGame = (sendToHost: (action: any) => boolean, playerName: string) => {
+export const joinGame = (
+  sendToHost: (action: any) => Promise<boolean>,
+  playerName: string
+) => {
   return sendToHost({
-    type: 'player-join',
-    playerName
+    type: "player-join",
+    playerName,
   });
 };
 
-export const castVote = (sendToHost: (action: any) => boolean, targetId: string) => {
+export const castVote = (
+  sendToHost: (action: any) => Promise<boolean>,
+  targetId: string
+) => {
   return sendToHost({
-    type: 'vote-cast',
-    targetId
+    type: "vote-cast",
+    targetId,
   });
 };
 
-export const sendPrivateMessage = (sendToHost: (action: any) => boolean, message: PrivateMessage) => {
+export const sendPrivateMessage = (
+  sendToHost: (action: any) => Promise<boolean>,
+  message: PrivateMessage
+) => {
   return sendToHost({
-    type: 'private-message',
-    message
+    type: "private-message",
+    message,
   });
 };
