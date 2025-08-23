@@ -62,9 +62,28 @@ export const useGameState = (isHost: boolean) => {
     return shuffled.map((player, index) => ({
       ...player,
       role: roleAssignments[index],
+      target: getTarget(player, roleAssignments[index], shuffled),
       isAlive: true,
     }));
   }, []);
+
+  const getTarget = useCallback(
+    (currentPlayer: Player, role: Role, players: Player[]) => {
+      if (role !== "Spy" && role !== "Assassin") {
+        return undefined;
+      }
+      let target: Player | undefined;
+      while (!target) {
+        const randomIndex = Math.floor(Math.random() * players.length);
+        if (players[randomIndex].id !== currentPlayer.id) {
+          target = players[randomIndex];
+        }
+        console.log(target);
+      }
+      return target.name;
+    },
+    []
+  );
 
   const generateSingleEcho = useCallback((round: number): Echo => {
     const echoTemplates = {
@@ -117,10 +136,8 @@ export const useGameState = (isHost: boolean) => {
     const newRound = gameState.round + 1;
 
     // Generate 1 echo at the start of each round, except the first round
-    if (newRound > 1) {
-      const singleEcho = generateSingleEcho(newRound);
-      setEchoes((prev) => [...prev, singleEcho]);
-    }
+    const singleEcho = generateSingleEcho(newRound);
+    setEchoes((prev) => [...prev, singleEcho]);
 
     setSentMessagesThisRound(0);
 

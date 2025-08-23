@@ -3,6 +3,7 @@ import Peer, { DataConnection } from "peerjs";
 import { useGameState } from "./useGameState";
 import * as gameFunctions from "@/game/functions";
 import { Player } from "@/types/game";
+import { faker } from "@faker-js/faker";
 
 export const useHost = (roomId: string, isHost: boolean) => {
   const peer = useRef<Peer | null>(null);
@@ -142,6 +143,7 @@ export const useHost = (roomId: string, isHost: boolean) => {
       const player: Player = {
         id: peer.current?.id || "",
         name: playerName || "host",
+        fakeName: faker.book.author() || "host",
         isHost: true,
         isAlive: true,
       };

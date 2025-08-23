@@ -1,13 +1,19 @@
-import { useState } from 'react';
-import { GameState, Player, Echo, PrivateMessage } from '@/types/game';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Clock, MessageCircle, Users, Vote, Scroll } from 'lucide-react';
-import EchoFeed from './EchoFeed';
-import PrivateChat from './PrivateChat';
-import VotingPanel from './VotingPanel';
+import { useState } from "react";
+import { GameState, Player, Echo, PrivateMessage } from "@/types/game";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Clock, MessageCircle, Users, Vote, Scroll } from "lucide-react";
+import EchoFeed from "./EchoFeed";
+import PrivateChat from "./PrivateChat";
+import VotingPanel from "./VotingPanel";
 
 interface GameBoardProps {
   gameState: GameState;
@@ -26,18 +32,18 @@ const GameBoard = ({
   privateMessages,
   sentMessagesThisRound,
   onSendPrivateMessage,
-  onCastVote
+  onCastVote,
 }: GameBoardProps) => {
-  const [activeTab, setActiveTab] = useState('echoes');
-  
+  const [activeTab, setActiveTab] = useState("echoes");
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const alivePlayers = gameState.players.filter(p => p.isAlive);
-  const currentRoundEchoes = echoes.filter(e => e.round === gameState.round);
+  const alivePlayers = gameState.players.filter((p) => p.isAlive);
+  const currentRoundEchoes = echoes.filter((e) => e.round === gameState.round);
 
   return (
     <div className="min-h-screen bg-gradient-deep p-4">
@@ -70,7 +76,10 @@ const GameBoard = ({
           <div className="lg:col-span-2 space-y-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="echoes" className="flex items-center space-x-2">
+                <TabsTrigger
+                  value="echoes"
+                  className="flex items-center space-x-2"
+                >
                   <Scroll className="w-4 h-4" />
                   <span>Echoes</span>
                   {currentRoundEchoes.length > 0 && (
@@ -79,7 +88,10 @@ const GameBoard = ({
                     </Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="messages" className="flex items-center space-x-2">
+                <TabsTrigger
+                  value="messages"
+                  className="flex items-center space-x-2"
+                >
                   <MessageCircle className="w-4 h-4" />
                   <span>Messages</span>
                   {privateMessages.length > 0 && (
@@ -88,7 +100,10 @@ const GameBoard = ({
                     </Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="voting" className="flex items-center space-x-2">
+                <TabsTrigger
+                  value="voting"
+                  className="flex items-center space-x-2"
+                >
                   <Vote className="w-4 h-4" />
                   <span>Voting</span>
                 </TabsTrigger>
@@ -109,7 +124,7 @@ const GameBoard = ({
               </TabsContent>
 
               <TabsContent value="voting">
-                {gameState.phase === 'voting' ? (
+                {gameState.phase === "voting" ? (
                   <VotingPanel
                     players={alivePlayers}
                     currentPlayer={currentPlayer}
@@ -143,15 +158,25 @@ const GameBoard = ({
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
                   <span>Name:</span>
-                  <span className="font-medium">{currentPlayer.name}</span>
+                  <span className="font-medium">
+                    {currentPlayer.fakeName} ({currentPlayer.name})
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Role:</span>
                   <Badge variant="outline">{currentPlayer.role}</Badge>
                 </div>
+                {currentPlayer.target && (
+                  <div className="flex justify-between">
+                    <span>Target:</span>
+                    <Badge variant="destructive">{currentPlayer.target}</Badge>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span>Status:</span>
-                  <Badge variant={currentPlayer.isAlive ? "default" : "destructive"}>
+                  <Badge
+                    variant={currentPlayer.isAlive ? "default" : "destructive"}
+                  >
                     {currentPlayer.isAlive ? "Alive" : "Eliminated"}
                   </Badge>
                 </div>
@@ -163,30 +188,42 @@ const GameBoard = ({
               <CardHeader>
                 <CardTitle>All Players</CardTitle>
                 <CardDescription>
-                  {alivePlayers.length} alive, {gameState.players.length - alivePlayers.length} eliminated
+                  {alivePlayers.length} alive,{" "}
+                  {gameState.players.length - alivePlayers.length} eliminated
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   {gameState.players.map((player) => (
-                    <div 
+                    <div
                       key={player.id}
                       className={`flex items-center justify-between p-2 rounded-lg ${
-                        player.isAlive ? 'bg-muted/30' : 'bg-destructive/10 opacity-60'
+                        player.isAlive
+                          ? "bg-muted/30"
+                          : "bg-destructive/10 opacity-60"
                       }`}
                     >
                       <div className="flex items-center space-x-2">
-                        <div className={`w-2 h-2 rounded-full ${
-                          player.isAlive ? 'bg-green-500' : 'bg-red-500'
-                        }`} />
-                        <span className={`text-sm ${!player.isAlive && 'line-through'}`}>
-                          {player.name}
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            player.isAlive ? "bg-green-500" : "bg-red-500"
+                          }`}
+                        />
+                        <span
+                          className={`text-sm ${
+                            !player.isAlive && "line-through"
+                          }`}
+                        >
+                          {player.fakeName}
                           {player.isHost && " 👑"}
                         </span>
                       </div>
-                      {gameState.votes[player.id] && gameState.phase === 'voting' && (
-                        <Badge variant="outline" className="text-xs">Voted</Badge>
-                      )}
+                      {gameState.votes[player.id] &&
+                        gameState.phase === "voting" && (
+                          <Badge variant="outline" className="text-xs">
+                            Voted
+                          </Badge>
+                        )}
                     </div>
                   ))}
                 </div>
@@ -200,15 +237,19 @@ const GameBoard = ({
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <Badge variant="secondary" className="w-full justify-center py-2">
-                    {gameState.phase.charAt(0).toUpperCase() + gameState.phase.slice(1)}
+                  <Badge
+                    variant="secondary"
+                    className="w-full justify-center py-2"
+                  >
+                    {gameState.phase.charAt(0).toUpperCase() +
+                      gameState.phase.slice(1)}
                   </Badge>
-                  {gameState.phase === 'round' && (
+                  {gameState.phase === "round" && (
                     <p className="text-sm text-muted-foreground text-center">
                       Discuss, investigate, and prepare for voting
                     </p>
                   )}
-                  {gameState.phase === 'voting' && (
+                  {gameState.phase === "voting" && (
                     <p className="text-sm text-muted-foreground text-center">
                       Cast your vote to eliminate a player
                     </p>

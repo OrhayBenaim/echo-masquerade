@@ -1,4 +1,5 @@
 import { Player } from "@/types/game";
+import { faker } from "@faker-js/faker";
 
 export const handlePlayerJoin = (
   action: any,
@@ -9,6 +10,7 @@ export const handlePlayerJoin = (
   const newPlayer: Player = {
     id: peerId,
     name: action.playerName,
+    fakeName: faker.book.author() || "host",
     isHost: isHost,
     isAlive: true,
   };
