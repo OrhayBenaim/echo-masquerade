@@ -169,6 +169,24 @@ export const useGameState = (isHost: boolean) => {
       setGameState((prev) => {
         if (prev.timeRemaining <= 1) {
           clearInterval(timerRef.current!);
+          // Start voting phase timer
+          timerRef.current = setInterval(() => {
+            setGameState((prevState) => {
+              if (prevState.phase !== "voting") {
+                clearInterval(timerRef.current!);
+                return prevState;
+              }
+
+              if (prevState.timeRemaining <= 1) {
+                clearInterval(timerRef.current!);
+                return processVotingResults(prevState);
+              }
+              return {
+                ...prevState,
+                timeRemaining: prevState.timeRemaining - 1,
+              };
+            });
+          }, 1000);
           return { ...prev, phase: "voting", timeRemaining: 60 };
         }
         return { ...prev, timeRemaining: prev.timeRemaining - 1 };
@@ -176,12 +194,142 @@ export const useGameState = (isHost: boolean) => {
     }, 1000);
   }, [gameState, isHost, generateSingleEcho]);
 
-  const castVote = useCallback((targetId: string, voterId: string) => {
+  const startVotingPhase = useCallback(() => {
+    if (!isHost) return;
+
     setGameState((prev) => ({
       ...prev,
-      votes: { ...prev.votes, [voterId]: targetId },
+      phase: "voting",
+      timeRemaining: 60,
+      votes: {},
     }));
+
+    // Start voting timer
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setGameState((prev) => {
+        if (prev.phase !== "voting") {
+          clearInterval(timerRef.current!);
+          return prev;
+        }
+
+        if (prev.timeRemaining <= 1) {
+          clearInterval(timerRef.current!);
+          return processVotingResults(prev);
+        }
+        return { ...prev, timeRemaining: prev.timeRemaining - 1 };
+      });
+    }, 1000);
+  }, [isHost]);
+
+  const processVotingResults = useCallback((gameState: GameState) => {
+    const alivePlayers = gameState.players.filter((p) => p.isAlive);
+    const totalVotes = Object.keys(gameState.votes).length;
+    const totalAlivePlayers = alivePlayers.length;
+
+    // If everyone voted or timer expired, process results
+    if (totalVotes >= totalAlivePlayers || gameState.timeRemaining <= 0) {
+      // Count votes
+      const voteCounts: Record<string, number> = {};
+      Object.values(gameState.votes).forEach((targetId) => {
+        voteCounts[targetId] = (voteCounts[targetId] || 0) + 1;
+      });
+
+      // Find player with most votes
+      let eliminatedPlayerId: string | undefined;
+      let maxVotes = 0;
+
+      Object.entries(voteCounts).forEach(([playerId, votes]) => {
+        if (votes > maxVotes) {
+          maxVotes = votes;
+          eliminatedPlayerId = playerId;
+        }
+      });
+
+      // If there's a tie, randomly select one
+      if (!eliminatedPlayerId) {
+        const tiedPlayers = Object.entries(voteCounts)
+          .filter(([_, votes]) => votes === maxVotes)
+          .map(([playerId]) => playerId);
+
+        if (tiedPlayers.length > 0) {
+          eliminatedPlayerId =
+            tiedPlayers[Math.floor(Math.random() * tiedPlayers.length)];
+        }
+      }
+
+      // Mark player as eliminated
+      const updatedPlayers = gameState.players.map((player) =>
+        player.id === eliminatedPlayerId
+          ? { ...player, isAlive: false }
+          : player
+      );
+
+      // Check win conditions
+      const remainingPlayers = updatedPlayers.filter((p) => p.isAlive);
+      const spies = remainingPlayers.filter((p) => p.role === "Spy");
+      const assassins = remainingPlayers.filter((p) => p.role === "Assassin");
+      const guests = remainingPlayers.filter((p) => p.role === "Guest");
+      const watchers = remainingPlayers.filter((p) => p.role === "Watcher");
+
+      let winner: string | undefined;
+      let gamePhase: GameState["phase"] = "results";
+
+      // Check if all spies and assassins are eliminated (Guests/Watchers win)
+      if (spies.length === 0 && assassins.length === 0) {
+        winner = "Guests and Watchers";
+        gamePhase = "game-over";
+      }
+      // Check if all guests and watchers are eliminated (Spies win)
+      else if (guests.length === 0 && watchers.length === 0) {
+        winner = "Spies";
+        gamePhase = "game-over";
+      }
+      // Check if assassin eliminated their target
+      else if (eliminatedPlayerId && assassins.length > 0) {
+        const assassin = assassins.find((a) => a.target === eliminatedPlayerId);
+        if (assassin) {
+          winner = "Assassin";
+          gamePhase = "game-over";
+        }
+      }
+
+      return {
+        ...gameState,
+        phase: gamePhase,
+        players: updatedPlayers,
+        eliminatedPlayer: eliminatedPlayerId,
+        winner,
+        timeRemaining: 0,
+      };
+    }
+
+    return gameState;
   }, []);
+
+  const castVote = useCallback(
+    (targetId: string, voterId: string) => {
+      setGameState((prev) => {
+        const newState = {
+          ...prev,
+          votes: { ...prev.votes, [voterId]: targetId },
+        };
+
+        // Check if everyone has voted
+        const alivePlayers = prev.players.filter((p) => p.isAlive);
+        const totalVotes = Object.keys(newState.votes).length;
+        const totalAlivePlayers = alivePlayers.length;
+
+        if (totalVotes >= totalAlivePlayers) {
+          // Process voting results immediately
+          return processVotingResults(newState);
+        }
+
+        return newState;
+      });
+    },
+    [processVotingResults]
+  );
 
   const sendPrivateMessage = useCallback(
     (message: PrivateMessage) => {
@@ -245,6 +393,7 @@ export const useGameState = (isHost: boolean) => {
       removePlayer,
       startGame,
       startRound,
+      startVotingPhase,
       castVote,
       sendPrivateMessage,
       setGameState,

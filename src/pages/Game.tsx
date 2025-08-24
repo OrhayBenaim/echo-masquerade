@@ -3,6 +3,7 @@ import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import GameLobby from "@/components/game/GameLobby";
 import GameBoard from "@/components/game/GameBoard";
 import RoleCard from "@/components/game/RoleCard";
+import ResultsScreen from "@/components/game/ResultsScreen";
 import { useToast } from "@/hooks/use-toast";
 import { usePeerConnection } from "@/hooks/usePeerConnection";
 import { useHost } from "@/hooks/useHost";
@@ -69,6 +70,16 @@ const Game = () => {
     gameHook.actions.sendPrivateMessage(message);
   };
 
+  const handleContinueToNextRound = () => {
+    if (isHost) {
+      (gameHook as ReturnType<typeof useHost>).actions.startRound();
+    }
+  };
+
+  const handleReturnToLobby = () => {
+    navigate("/");
+  };
+
   // Show connection error
   if (connectionError) {
     return (
@@ -95,6 +106,21 @@ const Game = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-deep p-4">
         <RoleCard role={currentPlayer.role} players={gameState.players} />
       </div>
+    );
+  }
+
+  // Show results screen
+  if (
+    (gameState.phase === "results" || gameState.phase === "game-over") &&
+    currentPlayer
+  ) {
+    return (
+      <ResultsScreen
+        gameState={gameState}
+        currentPlayer={currentPlayer}
+        onContinueToNextRound={handleContinueToNextRound}
+        onReturnToLobby={handleReturnToLobby}
+      />
     );
   }
 
