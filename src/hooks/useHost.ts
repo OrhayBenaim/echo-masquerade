@@ -201,6 +201,9 @@ export const useHost = (roomId: string, isHost: boolean) => {
     currentPlayer,
     actions: {
       ...actions,
+      castVote: (targetId: string) => {
+        actions.castVote(targetId, peer.current?.id || "");
+      },
       joinGame,
       broadcastToClients,
       broadcastSync,

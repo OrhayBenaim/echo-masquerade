@@ -62,11 +62,7 @@ const Game = () => {
   };
 
   const handleCastVote = (targetId: string) => {
-    // if (isHost && 'actions' in hostHook && 'castVote' in hostHook.actions) {
-    //   hostHook.actions.castVote(targetId, currentPlayer?.id || '');
-    // } else {
-    //   clientHook.actions.castVote(targetId);
-    // }
+    gameHook.actions.castVote(targetId);
   };
 
   const handleSendPrivateMessage = (message: PrivateMessage) => {
