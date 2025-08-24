@@ -20,7 +20,7 @@ export const useGameState = (isHost: boolean) => {
 
   const [echoes, setEchoes] = useState<Echo[]>([]);
   const [privateMessages, setPrivateMessages] = useState<PrivateMessage[]>([]);
-  const [sentMessagesThisRound, setSentMessagesThisRound] = useState(0);
+  const [messagesSentThisRound, setMessagesSentThisRound] = useState({});
   const spyTarget = useRef<string | null>(null);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -40,7 +40,7 @@ export const useGameState = (isHost: boolean) => {
     const roleAssignments: Role[] = [];
 
     // Calculate role distribution based on player count
-    const spyCount = Math.max(2, Math.floor(players.length * 0.25));
+    const spyCount = Math.max(1, Math.floor(players.length * 0.25));
     const hasAssassin = players.length >= 7;
     const hasWatcher = players.length >= 9;
 
@@ -153,7 +153,7 @@ export const useGameState = (isHost: boolean) => {
     const singleEcho = generateSingleEcho(newRound);
     setEchoes((prev) => [...prev, singleEcho]);
 
-    setSentMessagesThisRound(0);
+    setMessagesSentThisRound({});
 
     setGameState((prev) => ({
       ...prev,
@@ -186,15 +186,19 @@ export const useGameState = (isHost: boolean) => {
   const sendPrivateMessage = useCallback(
     (message: PrivateMessage) => {
       if (
-        sentMessagesThisRound >= DEFAULT_GAME_CONFIG.maxPrivateMessagesPerRound
+        messagesSentThisRound[message.fromId] >=
+        DEFAULT_GAME_CONFIG.maxPrivateMessagesPerRound
       ) {
         throw new Error("Maximum messages per round reached");
       }
 
       setPrivateMessages((prev) => [...prev, message]);
-      setSentMessagesThisRound((prev) => prev + 1);
+      setMessagesSentThisRound((prev) => ({
+        ...prev,
+        [message.fromId]: (prev[message.fromId] || 0) + 1,
+      }));
     },
-    [sentMessagesThisRound]
+    [messagesSentThisRound]
   );
 
   const addPlayer = useCallback((player: Player) => {
@@ -234,7 +238,7 @@ export const useGameState = (isHost: boolean) => {
     gameState,
     echoes,
     privateMessages,
-    sentMessagesThisRound,
+    messagesSentThisRound,
     actions: {
       generateRoomId,
       addPlayer,

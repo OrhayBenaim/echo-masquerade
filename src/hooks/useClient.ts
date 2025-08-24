@@ -9,6 +9,7 @@ export const useClient = (roomId: string, isHost: boolean) => {
   const [isConnected, setIsConnected] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
+  const [sentMessagesThisRound, setSentMessagesThisRound] = useState<number>(0);
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [gameState, setGameState] = useState<GameState>({
     phase: "lobby",
@@ -104,6 +105,13 @@ export const useClient = (roomId: string, isHost: boolean) => {
         setEchoes(message.echoes || []);
         setPrivateMessages(message.privateMessages || []);
         break;
+      case "messages-sent-this-round":
+        console.log(
+          "Client syncing messages sent this round:",
+          message.messagesSentThisRound
+        );
+        setSentMessagesThisRound(message.messagesSentThisRound || 0);
+        break;
       default:
         console.warn("Unknown message type:", message.type);
     }
@@ -152,6 +160,7 @@ export const useClient = (roomId: string, isHost: boolean) => {
     privateMessages,
     isConnected,
     connectionError,
+    sentMessagesThisRound,
     currentPlayer,
     actions: {
       joinGame: (playerName: string) =>

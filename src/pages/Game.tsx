@@ -6,6 +6,7 @@ import RoleCard from "@/components/game/RoleCard";
 import { useToast } from "@/hooks/use-toast";
 import { usePeerConnection } from "@/hooks/usePeerConnection";
 import { useHost } from "@/hooks/useHost";
+import { PrivateMessage } from "@/types/game";
 
 const Game = () => {
   const { roomId } = useParams<{ roomId: string }>();
@@ -32,6 +33,7 @@ const Game = () => {
     gameState,
     echoes,
     privateMessages,
+    sentMessagesThisRound,
     isConnected,
     connectionError,
     currentPlayer,
@@ -67,12 +69,8 @@ const Game = () => {
     // }
   };
 
-  const handleSendPrivateMessage = (message: any) => {
-    // if (isHost && 'actions' in hostHook && 'sendPrivateMessage' in hostHook.actions) {
-    //   hostHook.actions.sendPrivateMessage(message);
-    // } else {
-    //   clientHook.actions.sendPrivateMessage(message);
-    // }
+  const handleSendPrivateMessage = (message: PrivateMessage) => {
+    gameHook.actions.sendPrivateMessage(message);
   };
 
   // Show connection error
@@ -112,7 +110,7 @@ const Game = () => {
         currentPlayer={currentPlayer}
         echoes={echoes}
         privateMessages={privateMessages}
-        sentMessagesThisRound={0}
+        sentMessagesThisRound={sentMessagesThisRound}
         onSendPrivateMessage={handleSendPrivateMessage}
         onCastVote={handleCastVote}
       />

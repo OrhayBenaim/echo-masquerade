@@ -14,7 +14,7 @@ export const useHost = (roomId: string, isHost: boolean) => {
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
   const gameStateHook = useGameState(true);
-  const { gameState, echoes, privateMessages, sentMessagesThisRound, actions } =
+  const { gameState, echoes, privateMessages, messagesSentThisRound, actions } =
     gameStateHook;
 
   const initializePeer = useCallback(() => {
@@ -51,10 +51,14 @@ export const useHost = (roomId: string, isHost: boolean) => {
       connections.forEach((conn) => {
         if (conn.open) {
           conn.send(message);
+          conn.send({
+            type: "messages-sent-this-round",
+            messagesSentThisRound: messagesSentThisRound[conn.peer || ""],
+          });
         }
       });
     },
-    [connections]
+    [connections, messagesSentThisRound]
   );
 
   const broadcastSync = useCallback(() => {
@@ -181,6 +185,10 @@ export const useHost = (roomId: string, isHost: boolean) => {
       disconnect();
     };
   }, [isHost]);
+
+  const sentMessagesThisRound = useMemo(() => {
+    return messagesSentThisRound[peer.current?.id || ""] || 0;
+  }, [messagesSentThisRound, peer.current?.id]);
 
   return {
     gameState,

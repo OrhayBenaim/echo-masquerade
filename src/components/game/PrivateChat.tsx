@@ -187,7 +187,7 @@ const PrivateChat = ({
           ) : (
             <div className="space-y-3 max-h-64 overflow-y-auto">
               {myMessages
-                .sort((a, b) => b.timestamp - a.timestamp)
+                .sort((a, b) => a.timestamp - b.timestamp)
                 .map((message) => {
                   const isFromMe = message.fromId === currentPlayer.id;
                   const otherPersonName = isFromMe
