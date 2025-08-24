@@ -66,6 +66,7 @@ export const useGameState = (isHost: boolean) => {
         role: roleAssignments[index],
         target: undefined,
         isAlive: true,
+        isRevealed: false,
       }))
       .map((player, _, pl) => ({
         ...player,
@@ -167,7 +168,7 @@ export const useGameState = (isHost: boolean) => {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       setGameState((prev) => {
-        if (prev.timeRemaining <= 1) {
+        if (prev.timeRemaining <= 0) {
           clearInterval(timerRef.current!);
           // Start voting phase timer
           timerRef.current = setInterval(() => {
@@ -177,7 +178,7 @@ export const useGameState = (isHost: boolean) => {
                 return prevState;
               }
 
-              if (prevState.timeRemaining <= 1) {
+              if (prevState.timeRemaining <= 0) {
                 clearInterval(timerRef.current!);
                 return processVotingResults(prevState);
               }
@@ -187,7 +188,11 @@ export const useGameState = (isHost: boolean) => {
               };
             });
           }, 1000);
-          return { ...prev, phase: "voting", timeRemaining: 60 };
+          return {
+            ...prev,
+            phase: "voting",
+            timeRemaining: DEFAULT_GAME_CONFIG.votingDuration,
+          };
         }
         return { ...prev, timeRemaining: prev.timeRemaining - 1 };
       });
@@ -200,7 +205,7 @@ export const useGameState = (isHost: boolean) => {
     setGameState((prev) => ({
       ...prev,
       phase: "voting",
-      timeRemaining: 60,
+      timeRemaining: DEFAULT_GAME_CONFIG.votingDuration,
       votes: {},
     }));
 
@@ -213,7 +218,7 @@ export const useGameState = (isHost: boolean) => {
           return prev;
         }
 
-        if (prev.timeRemaining <= 1) {
+        if (prev.timeRemaining <= 0) {
           clearInterval(timerRef.current!);
           return processVotingResults(prev);
         }
@@ -223,12 +228,12 @@ export const useGameState = (isHost: boolean) => {
   }, [isHost]);
 
   const processVotingResults = useCallback((gameState: GameState) => {
-    const alivePlayers = gameState.players.filter((p) => p.isAlive);
+    const activePlayers = gameState.players.filter((p) => !p.isRevealed);
     const totalVotes = Object.keys(gameState.votes).length;
-    const totalAlivePlayers = alivePlayers.length;
+    const totalActivePlayers = activePlayers.length;
 
     // If everyone voted or timer expired, process results
-    if (totalVotes >= totalAlivePlayers || gameState.timeRemaining <= 0) {
+    if (totalVotes >= totalActivePlayers || gameState.timeRemaining <= 0) {
       // Count votes
       const voteCounts: Record<string, number> = {};
       Object.values(gameState.votes).forEach((targetId) => {
@@ -236,60 +241,79 @@ export const useGameState = (isHost: boolean) => {
       });
 
       // Find player with most votes
-      let eliminatedPlayerId: string | undefined;
+      let revealedPlayerId: string | undefined;
       let maxVotes = 0;
 
       Object.entries(voteCounts).forEach(([playerId, votes]) => {
         if (votes > maxVotes) {
           maxVotes = votes;
-          eliminatedPlayerId = playerId;
+          revealedPlayerId = playerId;
         }
       });
 
       // If there's a tie, randomly select one
-      if (!eliminatedPlayerId) {
+      if (!revealedPlayerId) {
         const tiedPlayers = Object.entries(voteCounts)
           .filter(([_, votes]) => votes === maxVotes)
           .map(([playerId]) => playerId);
 
         if (tiedPlayers.length > 0) {
-          eliminatedPlayerId =
+          revealedPlayerId =
             tiedPlayers[Math.floor(Math.random() * tiedPlayers.length)];
         }
       }
 
-      // Mark player as eliminated
+      // Mark player as revealed
       const updatedPlayers = gameState.players.map((player) =>
-        player.id === eliminatedPlayerId
-          ? { ...player, isAlive: false }
+        player.id === revealedPlayerId
+          ? { ...player, isRevealed: true }
           : player
       );
 
       // Check win conditions
-      const remainingPlayers = updatedPlayers.filter((p) => p.isAlive);
-      const spies = remainingPlayers.filter((p) => p.role === "Spy");
-      const assassins = remainingPlayers.filter((p) => p.role === "Assassin");
-      const guests = remainingPlayers.filter((p) => p.role === "Guest");
-      const watchers = remainingPlayers.filter((p) => p.role === "Watcher");
+      const activePlayers = updatedPlayers.filter((p) => !p.isRevealed);
+      const spies = activePlayers.filter((p) => p.role === "Spy");
+      const assassins = activePlayers.filter((p) => p.role === "Assassin");
+      const revealedPlayerName = gameState.players.find(
+        (p) => p.id === revealedPlayerId
+      )?.name;
 
       let winner: string | undefined;
       let gamePhase: GameState["phase"] = "results";
 
       // Check if all spies and assassins are eliminated (Guests/Watchers win)
       if (spies.length === 0 && assassins.length === 0) {
-        winner = "Guests and Watchers";
+        winner = "Guests";
         gamePhase = "game-over";
       }
-      // Check if all guests and watchers are eliminated (Spies win)
-      else if (guests.length === 0 && watchers.length === 0) {
-        winner = "Spies";
-        gamePhase = "game-over";
+
+      // Check if spy revealed their target
+      else if (revealedPlayerId && spies.length > 0) {
+        const spy = spies.find((a) => a.target === revealedPlayerName);
+        if (spy) {
+          winner = "Spy";
+          gamePhase = "game-over";
+        }
       }
-      // Check if assassin eliminated their target
-      else if (eliminatedPlayerId && assassins.length > 0) {
-        const assassin = assassins.find((a) => a.target === eliminatedPlayerId);
-        if (assassin) {
-          winner = "Assassin";
+      // Check if only 2 players remain
+      else if (activePlayers.length === 2) {
+        const [player1, player2] = activePlayers;
+
+        // Spy vs their target
+        if (player1.role === "Spy" && player1.target === player2.name) {
+          winner = "Spy";
+          gamePhase = "game-over";
+        } else if (player2.role === "Spy" && player2.target === player1.name) {
+          winner = "Spy";
+          gamePhase = "game-over";
+        }
+
+        // Only guests and watchers remain
+        else if (
+          (player1.role === "Guest" || player1.role === "Watcher") &&
+          (player2.role === "Guest" || player2.role === "Watcher")
+        ) {
+          winner = "Guests";
           gamePhase = "game-over";
         }
       }
@@ -298,7 +322,7 @@ export const useGameState = (isHost: boolean) => {
         ...gameState,
         phase: gamePhase,
         players: updatedPlayers,
-        eliminatedPlayer: eliminatedPlayerId,
+        revealedPlayer: revealedPlayerId,
         winner,
         timeRemaining: 0,
       };
@@ -316,11 +340,11 @@ export const useGameState = (isHost: boolean) => {
         };
 
         // Check if everyone has voted
-        const alivePlayers = prev.players.filter((p) => p.isAlive);
+        const activePlayers = prev.players.filter((p) => !p.isRevealed);
         const totalVotes = Object.keys(newState.votes).length;
-        const totalAlivePlayers = alivePlayers.length;
+        const totalActivePlayers = activePlayers.length;
 
-        if (totalVotes >= totalAlivePlayers) {
+        if (totalVotes >= totalActivePlayers) {
           // Process voting results immediately
           return processVotingResults(newState);
         }
@@ -352,7 +376,7 @@ export const useGameState = (isHost: boolean) => {
   const addPlayer = useCallback((player: Player) => {
     setGameState((prev) => ({
       ...prev,
-      players: [...prev.players, player],
+      players: [...prev.players, { ...player, isRevealed: false }],
     }));
   }, []);
 

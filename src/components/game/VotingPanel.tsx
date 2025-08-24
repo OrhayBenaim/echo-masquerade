@@ -1,10 +1,16 @@
-import { useState } from 'react';
-import { Player } from '@/types/game';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Vote, UserX, AlertTriangle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { Player } from "@/types/game";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Vote, UserX, AlertTriangle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface VotingPanelProps {
   players: Player[];
@@ -13,36 +19,43 @@ interface VotingPanelProps {
   onCastVote: (targetId: string) => void;
 }
 
-const VotingPanel = ({ players, currentPlayer, votes, onCastVote }: VotingPanelProps) => {
-  const [selectedTarget, setSelectedTarget] = useState<string>('');
+const VotingPanel = ({
+  players,
+  currentPlayer,
+  votes,
+  onCastVote,
+}: VotingPanelProps) => {
+  const [selectedTarget, setSelectedTarget] = useState<string>("");
   const [hasVoted, setHasVoted] = useState(false);
   const { toast } = useToast();
 
-  const eligibleTargets = players.filter(p => p.id !== currentPlayer.id && p.isAlive);
+  const eligibleTargets = players.filter(
+    (p) => p.id !== currentPlayer.id && !p.isRevealed
+  );
   const voteCounts = Object.values(votes).reduce((acc, targetId) => {
     acc[targetId] = (acc[targetId] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
   const totalVotes = Object.keys(votes).length;
-  const totalPlayers = players.filter(p => p.isAlive).length;
+  const totalPlayers = players.filter((p) => !p.isRevealed).length;
 
   const handleVote = () => {
     if (!selectedTarget) {
       toast({
         title: "No Target Selected",
-        description: "Please select someone to vote for elimination.",
-        variant: "destructive"
+        description: "Please select someone to vote for reveal.",
+        variant: "destructive",
       });
       return;
     }
 
     onCastVote(selectedTarget);
     setHasVoted(true);
-    
+
     toast({
       title: "Vote Cast",
-      description: "Your vote has been recorded. May fate guide your choice...",
+      description: "Your vote has been recorded. The truth will be revealed...",
     });
   };
 
@@ -55,14 +68,14 @@ const VotingPanel = ({ players, currentPlayer, votes, onCastVote }: VotingPanelP
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Vote className="w-5 h-5 text-destructive" />
-              <span>Elimination Vote</span>
+              <span>Reveal Vote</span>
             </div>
             <Badge variant="outline">
               {totalVotes}/{totalPlayers} voted
             </Badge>
           </CardTitle>
           <CardDescription>
-            Choose wisely - someone will be eliminated from the masquerade
+            Choose wisely - someone will be revealed from the masquerade
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -73,7 +86,10 @@ const VotingPanel = ({ players, currentPlayer, votes, onCastVote }: VotingPanelP
               </div>
               <p className="text-lg font-medium mb-2">Vote Cast</p>
               <p className="text-muted-foreground">
-                You voted to eliminate <strong>{players.find(p => p.id === myVote)?.name}</strong>
+                You voted to reveal{" "}
+                <strong>
+                  {players.find((p) => p.id === myVote)?.fakeName}
+                </strong>
               </p>
               <Badge variant="destructive" className="mt-3">
                 Waiting for other players...
@@ -85,27 +101,31 @@ const VotingPanel = ({ players, currentPlayer, votes, onCastVote }: VotingPanelP
                 {eligibleTargets.map((player) => {
                   const voteCount = voteCounts[player.id] || 0;
                   const isSelected = selectedTarget === player.id;
-                  
+
                   return (
                     <div
                       key={player.id}
                       onClick={() => !hasVoted && setSelectedTarget(player.id)}
                       className={`p-4 rounded-lg border-2 cursor-pointer elegant-transition ${
                         isSelected
-                          ? 'border-destructive bg-destructive/10'
-                          : 'border-border hover:border-destructive/50 hover:bg-destructive/5'
-                      } ${hasVoted ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          ? "border-destructive bg-destructive/10"
+                          : "border-border hover:border-destructive/50 hover:bg-destructive/5"
+                      } ${hasVoted ? "opacity-50 cursor-not-allowed" : ""}`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                          <div className={`w-4 h-4 rounded-full border-2 ${
-                            isSelected ? 'border-destructive bg-destructive' : 'border-muted-foreground'
-                          }`} />
-                          <span className="font-medium">{player.name}</span>
+                          <div
+                            className={`w-4 h-4 rounded-full border-2 ${
+                              isSelected
+                                ? "border-destructive bg-destructive"
+                                : "border-muted-foreground"
+                            }`}
+                          />
+                          <span className="font-medium">{player.fakeName}</span>
                         </div>
                         {voteCount > 0 && (
                           <Badge variant="destructive">
-                            {voteCount} vote{voteCount !== 1 ? 's' : ''}
+                            {voteCount} vote{voteCount !== 1 ? "s" : ""}
                           </Badge>
                         )}
                       </div>
@@ -122,7 +142,7 @@ const VotingPanel = ({ players, currentPlayer, votes, onCastVote }: VotingPanelP
                 className="w-full"
               >
                 <UserX className="w-5 h-5" />
-                Cast Elimination Vote
+                Cast Reveal Vote
               </Button>
             </div>
           )}
@@ -135,7 +155,8 @@ const VotingPanel = ({ players, currentPlayer, votes, onCastVote }: VotingPanelP
             <div className="flex items-center space-x-2 text-muted-foreground">
               <AlertTriangle className="w-4 h-4" />
               <p className="text-sm">
-                Waiting for {totalPlayers - totalVotes} more player{totalPlayers - totalVotes !== 1 ? 's' : ''} to vote...
+                Waiting for {totalPlayers - totalVotes} more player
+                {totalPlayers - totalVotes !== 1 ? "s" : ""} to vote...
               </p>
             </div>
           </CardContent>
@@ -155,14 +176,17 @@ const VotingPanel = ({ players, currentPlayer, votes, onCastVote }: VotingPanelP
           ) : (
             <div className="space-y-2">
               {Object.entries(voteCounts)
-                .sort(([,a], [,b]) => b - a)
+                .sort(([, a], [, b]) => b - a)
                 .map(([playerId, count]) => {
-                  const player = players.find(p => p.id === playerId);
+                  const player = players.find((p) => p.id === playerId);
                   return (
-                    <div key={playerId} className="flex items-center justify-between p-2 rounded bg-muted/30">
-                      <span className="text-sm">{player?.name}</span>
+                    <div
+                      key={playerId}
+                      className="flex items-center justify-between p-2 rounded bg-muted/30"
+                    >
+                      <span className="text-sm">{player?.fakeName}</span>
                       <Badge variant="outline" className="text-xs">
-                        {count} vote{count !== 1 ? 's' : ''}
+                        {count} vote{count !== 1 ? "s" : ""}
                       </Badge>
                     </div>
                   );

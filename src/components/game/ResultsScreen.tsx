@@ -26,6 +26,25 @@ const ResultsScreen = ({
 }: ResultsScreenProps) => {
   const [timeRemaining, setTimeRemaining] = useState(10);
 
+  // Helper function to determine if a player is a winner
+  const isPlayerWinner = (
+    player: Player,
+    winner: string | undefined
+  ): boolean => {
+    if (!winner) return false;
+
+    switch (winner) {
+      case "Spy":
+        return player.role === "Spy";
+      case "Assassin":
+        return player.role === "Assassin";
+      case "Guests":
+        return player.role === "Guest" || player.role === "Watcher";
+      default:
+        return false;
+    }
+  };
+
   useEffect(() => {
     if (gameState.phase === "results") {
       const timer = setInterval(() => {
@@ -47,10 +66,10 @@ const ResultsScreen = ({
     }
   }, [gameState.phase, onContinueToNextRound, onReturnToLobby]);
 
-  const eliminatedPlayer = gameState.players.find(
-    (p) => p.id === gameState.eliminatedPlayer
+  const revealedPlayer = gameState.players.find(
+    (p) => p.id === gameState.revealedPlayer
   );
-  const alivePlayers = gameState.players.filter((p) => p.isAlive);
+  const activePlayers = gameState.players.filter((p) => !p.isRevealed);
   const voteCounts = Object.values(gameState.votes).reduce((acc, targetId) => {
     acc[targetId] = (acc[targetId] || 0) + 1;
     return acc;
@@ -63,18 +82,44 @@ const ResultsScreen = ({
   };
 
   if (gameState.phase === "game-over") {
+    // Determine if current player is a winner
+    const isWinner = isPlayerWinner(currentPlayer, gameState.winner);
+
     return (
       <div className="min-h-screen bg-gradient-deep p-4">
         <div className="max-w-4xl mx-auto space-y-6">
           <Card className="mysterious-shadow">
             <CardHeader className="text-center">
-              <CardTitle className="text-3xl mb-4">Game Over</CardTitle>
+              <CardTitle className="text-3xl mb-4">
+                {isWinner ? "Victory!" : "Defeat"}
+              </CardTitle>
               <div className="flex items-center justify-center space-x-2 mb-4">
-                <Crown className="w-8 h-8 text-yellow-500" />
-                <span className="text-2xl font-bold">
-                  {gameState.winner} Win!
-                </span>
+                {isWinner ? (
+                  <>
+                    <Crown className="w-8 h-8 text-yellow-500" />
+                    <span className="text-2xl font-bold text-green-600">
+                      {gameState.winner} Win!
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Skull className="w-8 h-8 text-red-500" />
+                    <span className="text-2xl font-bold text-red-600">
+                      {gameState.winner} Win!
+                    </span>
+                  </>
+                )}
               </div>
+              {isWinner && (
+                <p className="text-green-600 font-semibold">
+                  Congratulations! You have achieved your objective.
+                </p>
+              )}
+              {!isWinner && (
+                <p className="text-red-600 font-semibold">
+                  Better luck next time. The shadows have claimed you.
+                </p>
+              )}
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Final Results */}
@@ -87,24 +132,23 @@ const ResultsScreen = ({
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {eliminatedPlayer ? (
+                    {revealedPlayer ? (
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="font-semibold">
-                            {eliminatedPlayer.fakeName} ({eliminatedPlayer.name}
-                            )
+                            {revealedPlayer.fakeName} ({revealedPlayer.name})
                           </span>
                           <Badge variant="destructive">
-                            {eliminatedPlayer.role}
+                            {revealedPlayer.role}
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Received {voteCounts[eliminatedPlayer.id] || 0} votes
+                          Received {voteCounts[revealedPlayer.id] || 0} votes
                         </p>
                       </div>
                     ) : (
                       <p className="text-muted-foreground">
-                        No player was reveaked
+                        No player was revealed
                       </p>
                     )}
                   </CardContent>
@@ -119,19 +163,25 @@ const ResultsScreen = ({
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      {alivePlayers.map((player) => (
+                      {activePlayers.map((player) => (
                         <div
                           key={player.id}
-                          className="flex items-center justify-between"
+                          className={`flex items-center justify-between p-2 rounded ${
+                            player.id === currentPlayer.id
+                              ? isWinner
+                                ? "bg-green-100 border border-green-300"
+                                : "bg-red-100 border border-red-300"
+                              : ""
+                          }`}
                         >
                           <span
                             className={
                               player.id === currentPlayer.id ? "font-bold" : ""
                             }
                           >
-                            {player.fakeName}
+                            {player.fakeName}{" "}
+                            {player.id === currentPlayer.id && "(You)"}
                           </span>
-                          <Badge variant="secondary">{player.role}</Badge>
                         </div>
                       ))}
                     </div>
@@ -165,31 +215,31 @@ const ResultsScreen = ({
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Elimination Results */}
+            {/* Revealed Player Results */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <UserX className="w-5 h-5" />
-                  <span>Eliminated Player</span>
+                  <span>Revealed Player</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {eliminatedPlayer ? (
+                {revealedPlayer ? (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-4 bg-destructive/10 rounded-lg">
                       <div>
                         <h3 className="text-xl font-bold">
-                          {eliminatedPlayer.name}
+                          {revealedPlayer.fakeName} ({revealedPlayer.name})
                         </h3>
                         <p className="text-muted-foreground">
-                          has been eliminated
+                          has been revealed
                         </p>
                       </div>
                       <Badge
                         variant="destructive"
                         className="text-lg px-3 py-1"
                       >
-                        {eliminatedPlayer.role}
+                        {revealedPlayer.role}
                       </Badge>
                     </div>
 
@@ -197,7 +247,7 @@ const ResultsScreen = ({
                       <div>
                         <span className="font-semibold">Votes received:</span>
                         <span className="ml-2">
-                          {voteCounts[eliminatedPlayer.id] || 0}
+                          {voteCounts[revealedPlayer.id] || 0}
                         </span>
                       </div>
                       <div>
@@ -210,7 +260,7 @@ const ResultsScreen = ({
                   </div>
                 ) : (
                   <p className="text-muted-foreground text-center py-4">
-                    No player was eliminated
+                    No player was revealed
                   </p>
                 )}
               </CardContent>
@@ -237,13 +287,14 @@ const ResultsScreen = ({
                             playerId === currentPlayer.id ? "font-bold" : ""
                           }
                         >
-                          {player?.name || "Unknown"}
+                          {player?.fakeName || "Unknown"}{" "}
+                          {playerId === currentPlayer.id && "(You)"}
                         </span>
                         <div className="flex items-center space-x-2">
                           <span className="text-sm text-muted-foreground">
                             {votes} vote{votes !== 1 ? "s" : ""}
                           </span>
-                          {playerId === gameState.eliminatedPlayer && (
+                          {playerId === gameState.revealedPlayer && (
                             <Skull className="w-4 h-4 text-destructive" />
                           )}
                         </div>
@@ -259,12 +310,12 @@ const ResultsScreen = ({
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Users className="w-5 h-5" />
-                  <span>Survivors ({alivePlayers.length})</span>
+                  <span>Active Players ({activePlayers.length})</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {alivePlayers.map((player) => (
+                  {activePlayers.map((player) => (
                     <div
                       key={player.id}
                       className="flex items-center justify-between p-2 bg-muted/20 rounded"
@@ -274,11 +325,9 @@ const ResultsScreen = ({
                           player.id === currentPlayer.id ? "font-bold" : ""
                         }
                       >
-                        {player.name}
+                        {player.fakeName}{" "}
+                        {player.id === currentPlayer.id && "(You)"}
                       </span>
-                      <Badge variant="outline" className="text-xs">
-                        {player.role}
-                      </Badge>
                     </div>
                   ))}
                 </div>

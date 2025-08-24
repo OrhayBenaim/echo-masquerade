@@ -77,7 +77,7 @@ const Game = () => {
   };
 
   const handleReturnToLobby = () => {
-    navigate("/");
+    window.location.reload();
   };
 
   // Show connection error

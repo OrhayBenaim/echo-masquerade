@@ -8,6 +8,7 @@ export interface Player {
   target?: string;
   isHost: boolean;
   isAlive: boolean;
+  isRevealed: boolean;
   connection?: any; // PeerJS connection
 }
 
@@ -23,7 +24,7 @@ export interface GameState {
   timeRemaining: number;
   players: Player[];
   votes: Record<string, string>; // playerId -> targetId
-  eliminatedPlayer?: string;
+  revealedPlayer?: string;
   winner?: string;
   roomId: string;
 }
@@ -49,13 +50,15 @@ export interface GameConfig {
   maxPlayers: number;
   roundDuration: number;
   maxPrivateMessagesPerRound: number;
+  votingDuration: number;
   maxMessageLength: number;
 }
 
 export const DEFAULT_GAME_CONFIG: GameConfig = {
   minPlayers: 2,
   maxPlayers: 14,
-  roundDuration: 240, // 4 minutes
+  roundDuration: 5, // 4 minutes
+  votingDuration: 15, // 4 minutes
   maxPrivateMessagesPerRound: 2,
   maxMessageLength: 140,
 };

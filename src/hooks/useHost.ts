@@ -150,6 +150,7 @@ export const useHost = (roomId: string, isHost: boolean) => {
         fakeName: faker.book.author() || "host",
         isHost: true,
         isAlive: true,
+        isRevealed: false,
       };
       actions.addPlayer(player);
     },

@@ -42,8 +42,7 @@ const GameBoard = ({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const alivePlayers = gameState.players.filter((p) => p.isAlive);
-  const currentRoundEchoes = echoes.filter((e) => e.round === gameState.round);
+  const activePlayers = gameState.players.filter((p) => !p.isRevealed);
 
   return (
     <div className="min-h-screen bg-gradient-deep p-4">
@@ -65,7 +64,7 @@ const GameBoard = ({
               </div>
               <div className="flex items-center space-x-2">
                 <Users className="w-4 h-4" />
-                <span>{alivePlayers.length} Alive</span>
+                <span>{activePlayers.length} Active</span>
               </div>
             </div>
           </CardHeader>
@@ -82,9 +81,9 @@ const GameBoard = ({
                 >
                   <Scroll className="w-4 h-4" />
                   <span>Echoes</span>
-                  {currentRoundEchoes.length > 0 && (
+                  {echoes.length > 0 && (
                     <Badge variant="secondary" className="ml-1 text-xs">
-                      {currentRoundEchoes.length}
+                      {echoes.length}
                     </Badge>
                   )}
                 </TabsTrigger>
@@ -110,14 +109,14 @@ const GameBoard = ({
               </TabsList>
 
               <TabsContent value="echoes">
-                <EchoFeed echoes={currentRoundEchoes} />
+                <EchoFeed echoes={echoes} />
               </TabsContent>
 
               <TabsContent value="messages">
                 <PrivateChat
                   messages={privateMessages}
                   currentPlayer={currentPlayer}
-                  players={alivePlayers}
+                  players={activePlayers}
                   sentMessagesThisRound={sentMessagesThisRound}
                   onSendMessage={onSendPrivateMessage}
                 />
@@ -126,7 +125,7 @@ const GameBoard = ({
               <TabsContent value="voting">
                 {gameState.phase === "voting" ? (
                   <VotingPanel
-                    players={alivePlayers}
+                    players={activePlayers}
                     currentPlayer={currentPlayer}
                     votes={gameState.votes}
                     onCastVote={onCastVote}
@@ -175,9 +174,11 @@ const GameBoard = ({
                 <div className="flex justify-between">
                   <span>Status:</span>
                   <Badge
-                    variant={currentPlayer.isAlive ? "default" : "destructive"}
+                    variant={
+                      !currentPlayer.isRevealed ? "default" : "destructive"
+                    }
                   >
-                    {currentPlayer.isAlive ? "Alive" : "Eliminated"}
+                    {!currentPlayer.isRevealed ? "Active" : "Revealed"}
                   </Badge>
                 </div>
               </CardContent>
@@ -188,8 +189,8 @@ const GameBoard = ({
               <CardHeader>
                 <CardTitle>All Players</CardTitle>
                 <CardDescription>
-                  {alivePlayers.length} alive,{" "}
-                  {gameState.players.length - alivePlayers.length} eliminated
+                  {activePlayers.length} active,{" "}
+                  {gameState.players.length - activePlayers.length} revealed
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -198,7 +199,7 @@ const GameBoard = ({
                     <div
                       key={player.id}
                       className={`flex items-center justify-between p-2 rounded-lg ${
-                        player.isAlive
+                        !player.isRevealed
                           ? "bg-muted/30"
                           : "bg-destructive/10 opacity-60"
                       }`}
@@ -206,12 +207,12 @@ const GameBoard = ({
                       <div className="flex items-center space-x-2">
                         <div
                           className={`w-2 h-2 rounded-full ${
-                            player.isAlive ? "bg-green-500" : "bg-red-500"
+                            !player.isRevealed ? "bg-green-500" : "bg-red-500"
                           }`}
                         />
                         <span
                           className={`text-sm ${
-                            !player.isAlive && "line-through"
+                            player.isRevealed && "line-through"
                           }`}
                         >
                           {player.fakeName}
@@ -251,7 +252,7 @@ const GameBoard = ({
                   )}
                   {gameState.phase === "voting" && (
                     <p className="text-sm text-muted-foreground text-center">
-                      Cast your vote to eliminate a player
+                      Cast your vote to reveal a player
                     </p>
                   )}
                 </div>
