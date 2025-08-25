@@ -41,8 +41,8 @@ export const useGameState = (isHost: boolean) => {
 
     // Calculate role distribution based on player count
     const spyCount = Math.max(1, Math.floor(players.length * 0.25));
-    const hasAssassin = players.length >= 3;
-    const hasWatcher = players.length >= 3;
+    const hasAssassin = players.length >= 5;
+    const hasWatcher = players.length >= 5;
 
     // Add roles
     for (let i = 0; i < spyCount; i++) {
