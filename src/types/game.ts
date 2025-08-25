@@ -71,8 +71,8 @@ export interface GameConfig {
 export const DEFAULT_GAME_CONFIG: GameConfig = {
   minPlayers: 2,
   maxPlayers: 14,
-  roundDuration: 5,
-  votingDuration: 5,
+  roundDuration: 240,
+  votingDuration: 60,
   actionDuration: 30,
   maxPrivateMessagesPerRound: 2,
   maxMessageLength: 140,
