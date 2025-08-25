@@ -17,6 +17,7 @@ export interface GameState {
     | "lobby"
     | "role-assignment"
     | "round"
+    | "action"
     | "voting"
     | "results"
     | "game-over";
@@ -24,6 +25,18 @@ export interface GameState {
   timeRemaining: number;
   players: Player[];
   votes: Record<string, string>; // playerId -> targetId
+  actions?: Record<
+    string,
+    { type: "watch" | "assassinate" | "extract"; targetId?: string }
+  >; // playerId -> action
+  actionResults?: Array<{
+    actorName: string;
+    actorFakeName: string;
+    action: string;
+    targetName?: string;
+    targetFakeName?: string;
+    result: string;
+  }>;
   revealedPlayer?: string;
   winner?: string;
   roomId: string;
@@ -51,14 +64,16 @@ export interface GameConfig {
   roundDuration: number;
   maxPrivateMessagesPerRound: number;
   votingDuration: number;
+  actionDuration: number;
   maxMessageLength: number;
 }
 
 export const DEFAULT_GAME_CONFIG: GameConfig = {
   minPlayers: 2,
   maxPlayers: 14,
-  roundDuration: 240,
-  votingDuration: 60,
+  roundDuration: 5,
+  votingDuration: 5,
+  actionDuration: 30,
   maxPrivateMessagesPerRound: 2,
   maxMessageLength: 140,
 };

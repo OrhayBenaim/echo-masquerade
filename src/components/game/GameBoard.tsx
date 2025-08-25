@@ -14,6 +14,8 @@ import { Clock, MessageCircle, Users, Vote, Scroll } from "lucide-react";
 import EchoFeed from "./EchoFeed";
 import PrivateChat from "./PrivateChat";
 import VotingPanel from "./VotingPanel";
+import ActionPanel from "./ActionPanel";
+import ActionSummary from "./ActionSummary";
 
 interface GameBoardProps {
   gameState: GameState;
@@ -23,6 +25,10 @@ interface GameBoardProps {
   sentMessagesThisRound: number;
   onSendPrivateMessage: (message: PrivateMessage) => void;
   onCastVote: (targetId: string) => void;
+  onSubmitAction?: (
+    type: "watch" | "assassinate" | "extract",
+    targetId?: string
+  ) => void;
 }
 
 const GameBoard = ({
@@ -33,6 +39,7 @@ const GameBoard = ({
   sentMessagesThisRound,
   onSendPrivateMessage,
   onCastVote,
+  onSubmitAction,
 }: GameBoardProps) => {
   const [activeTab, setActiveTab] = useState("echoes");
 
@@ -74,7 +81,7 @@ const GameBoard = ({
           {/* Main Game Area */}
           <div className="lg:col-span-2 space-y-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger
                   value="echoes"
                   className="flex items-center space-x-2"
@@ -106,6 +113,13 @@ const GameBoard = ({
                   <Vote className="w-4 h-4" />
                   <span>Voting</span>
                 </TabsTrigger>
+                <TabsTrigger
+                  value="action"
+                  className="flex items-center space-x-2"
+                >
+                  <Scroll className="w-4 h-4" />
+                  <span>Action</span>
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="echoes">
@@ -136,6 +150,36 @@ const GameBoard = ({
                       <div className="text-center text-muted-foreground">
                         <Vote className="w-12 h-12 mx-auto mb-4 opacity-50" />
                         <p>Voting will begin when the round ends</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              <TabsContent value="action">
+                {gameState.phase === "action" ? (
+                  <div className="space-y-4">
+                    <ActionPanel
+                      players={activePlayers}
+                      currentPlayer={currentPlayer}
+                      actions={gameState.actions}
+                      onSubmitAction={(type, targetId) =>
+                        onSubmitAction?.(type, targetId)
+                      }
+                    />
+                    {gameState.actionResults &&
+                      gameState.actionResults.length > 0 && (
+                        <ActionSummary
+                          actionResults={gameState.actionResults}
+                        />
+                      )}
+                  </div>
+                ) : (
+                  <Card>
+                    <CardContent className="flex items-center justify-center h-48">
+                      <div className="text-center text-muted-foreground">
+                        <Scroll className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>Action phase occurs between rounds</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -253,6 +297,11 @@ const GameBoard = ({
                   {gameState.phase === "voting" && (
                     <p className="text-sm text-muted-foreground text-center">
                       Cast your vote to reveal a player
+                    </p>
+                  )}
+                  {gameState.phase === "action" && (
+                    <p className="text-sm text-muted-foreground text-center">
+                      Perform your role's special action
                     </p>
                   )}
                 </div>

@@ -66,13 +66,22 @@ const Game = () => {
     gameHook.actions.castVote(targetId);
   };
 
+  const handleSubmitAction = (
+    type: "watch" | "assassinate" | "extract",
+    targetId?: string
+  ) => {
+    if (!currentPlayer) return;
+    gameHook.actions.submitAction?.(currentPlayer.id, { type, targetId });
+  };
+
   const handleSendPrivateMessage = (message: PrivateMessage) => {
     gameHook.actions.sendPrivateMessage(message);
   };
 
   const handleContinueToNextRound = () => {
     if (isHost) {
-      (gameHook as ReturnType<typeof useHost>).actions.startRound();
+      // Enter action phase before the next round
+      (gameHook as ReturnType<typeof useHost>).actions.startActionPhase?.();
     }
   };
 
@@ -135,6 +144,7 @@ const Game = () => {
         sentMessagesThisRound={sentMessagesThisRound}
         onSendPrivateMessage={handleSendPrivateMessage}
         onCastVote={handleCastVote}
+        onSubmitAction={handleSubmitAction}
       />
     );
   }

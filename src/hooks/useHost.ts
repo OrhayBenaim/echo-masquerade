@@ -125,6 +125,9 @@ export const useHost = (roomId: string, isHost: boolean) => {
         case "private-message":
           gameFunctions.handlePrivateMessage(action, peerId, actions);
           break;
+        case "action-submit":
+          gameFunctions.handleActionSubmit(action, peerId, actions);
+          break;
         default:
           console.warn("Unknown action type:", action.type);
       }

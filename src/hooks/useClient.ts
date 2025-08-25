@@ -169,6 +169,10 @@ export const useClient = (roomId: string, isHost: boolean) => {
         gameActions.castVote(sendToHost, targetId),
       sendPrivateMessage: (message: PrivateMessage) =>
         gameActions.sendPrivateMessage(sendToHost, message),
+      submitAction: (
+        playerId: string,
+        action: { type: "watch" | "assassinate" | "extract"; targetId?: string }
+      ) => gameActions.submitAction(sendToHost, playerId, action),
       disconnect,
     },
   };

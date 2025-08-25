@@ -29,3 +29,15 @@ export const sendPrivateMessage = (
     message,
   });
 };
+
+export const submitAction = (
+  sendToHost: (action: any) => Promise<boolean>,
+  playerId: string,
+  action: { type: "watch" | "assassinate" | "extract"; targetId?: string }
+) => {
+  return sendToHost({
+    type: "action-submit",
+    playerId,
+    action,
+  });
+};

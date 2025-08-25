@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { UserX, Crown, Skull, Clock, Users } from "lucide-react";
+import ActionSummary from "./ActionSummary";
 
 interface ResultsScreenProps {
   gameState: GameState;
@@ -189,6 +190,12 @@ const ResultsScreen = ({
                 </Card>
               </div>
 
+              {/* Action Summary */}
+              {gameState.actionResults &&
+                gameState.actionResults.length > 0 && (
+                  <ActionSummary actionResults={gameState.actionResults} />
+                )}
+
               <div className="text-center">
                 <Button onClick={onReturnToLobby} size="lg">
                   Return to Lobby
@@ -333,6 +340,11 @@ const ResultsScreen = ({
                 </div>
               </CardContent>
             </Card>
+
+            {/* Action Summary */}
+            {gameState.actionResults && gameState.actionResults.length > 0 && (
+              <ActionSummary actionResults={gameState.actionResults} />
+            )}
           </CardContent>
         </Card>
       </div>

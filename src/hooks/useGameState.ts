@@ -41,8 +41,8 @@ export const useGameState = (isHost: boolean) => {
 
     // Calculate role distribution based on player count
     const spyCount = Math.max(1, Math.floor(players.length * 0.25));
-    const hasAssassin = players.length >= 7;
-    const hasWatcher = players.length >= 9;
+    const hasAssassin = players.length >= 3;
+    const hasWatcher = players.length >= 3;
 
     // Add roles
     for (let i = 0; i < spyCount; i++) {
@@ -162,6 +162,7 @@ export const useGameState = (isHost: boolean) => {
       round: newRound,
       timeRemaining: DEFAULT_GAME_CONFIG.roundDuration,
       votes: {},
+      actions: {},
     }));
 
     // Start timer
@@ -198,6 +199,248 @@ export const useGameState = (isHost: boolean) => {
       });
     }, 1000);
   }, [gameState, isHost, generateSingleEcho]);
+
+  // Resolve action phase effects in order: Watcher -> Assassin -> Spy
+  const processActions = useCallback((state: GameState): GameState => {
+    const actions = state.actions || {};
+    let players = [...state.players];
+    let winner: string | undefined = undefined;
+    let phase: GameState["phase"] | undefined = undefined;
+    const actionResults: Array<{
+      actorName: string;
+      actorFakeName: string;
+      action: string;
+      targetName?: string;
+      targetFakeName?: string;
+      result: string;
+    }> = [];
+
+    const isActive = (pId: string) =>
+      players.find((p) => p.id === pId && !p.isRevealed);
+
+    // 1) Watchers get notified if target acted
+    Object.entries(actions).forEach(([actorId, act]) => {
+      const actor = players.find((p) => p.id === actorId);
+      if (!actor || actor.role !== "Watcher" || !act.targetId) return;
+      if (!isActive(actorId)) return;
+
+      const target = players.find((p) => p.id === act.targetId);
+      if (!target) return;
+
+      const targetAction = actions[act.targetId];
+      if (targetAction) {
+        // Watcher detected action
+        actionResults.push({
+          actorName: actor.name,
+          actorFakeName: actor.fakeName,
+          action: "watched",
+          targetName: target.name,
+          targetFakeName: target.fakeName,
+          result: "detected movement",
+        });
+
+        // Notify watcher via echo
+        const echo: Echo = {
+          id: `echo-watch-${state.round}-${actorId}`,
+          content: `The watcher sensed movement around ${target.fakeName}'s room`,
+          type: "EventTease",
+          isTruth: true,
+          round: state.round,
+        };
+        setEchoes((prev) => [...prev, echo]);
+      } else {
+        // Watcher saw nothing
+        actionResults.push({
+          actorName: actor.name,
+          actorFakeName: actor.fakeName,
+          action: "watched",
+          targetName: target.name,
+          targetFakeName: target.fakeName,
+          result: "saw nothing",
+        });
+      }
+    });
+
+    // 2) Assassin kills their target
+    Object.entries(actions).forEach(([actorId, act]) => {
+      const actor = players.find((p) => p.id === actorId);
+      if (!actor || actor.role !== "Assassin" || !act.targetId) return;
+      if (!isActive(actorId) || !isActive(act.targetId)) return;
+
+      const target = players.find((p) => p.id === act.targetId);
+      if (!target) return;
+
+      players = players.map((p) =>
+        p.id === act.targetId ? { ...p, isRevealed: true } : p
+      );
+
+      actionResults.push({
+        actorName: actor.name,
+        actorFakeName: actor.fakeName,
+        action: "assassinated",
+        targetName: target.name,
+        targetFakeName: target.fakeName,
+        result: "target eliminated",
+      });
+
+      // Notify watcher via echo
+      const echo: Echo = {
+        id: `echo-watch-${state.round}-${actorId}`,
+        content: `${target.fakeName} was found dead in their room`,
+        type: "EventTease",
+        isTruth: true,
+        round: state.round,
+      };
+      setEchoes((prev) => [...prev, echo]);
+
+      if (target.name === actor.target) {
+        winner = "Assassin";
+        phase = "game-over";
+      }
+    });
+
+    // 3) Spy extracts info
+
+    // Object.entries(actions).forEach(([actorId, act]) => {
+    //   const actor = players.find((p) => p.id === actorId);
+    //   if (!actor || actor.role !== "Spy" || !act.targetId) return;
+    //   if (!isActive(actorId) || !isActive(act.targetId)) return;
+
+    //   const target = players.find((p) => p.id === act.targetId);
+    //   if (!target) return;
+
+    //   // If target is actor's true target -> success
+    //   if (actor.target === target.name) {
+    //     actionResults.push({
+    //       actorName: actor.name,
+    //       actorFakeName: actor.fakeName,
+    //       action: "extracted information from",
+    //       targetName: target.name,
+    //       targetFakeName: target.fakeName,
+    //       result: "successfully obtained secrets",
+    //     });
+
+    //     const echo: Echo = {
+    //       id: `echo-extract-${state.round}-${actorId}`,
+    //       content: `${actor.fakeName} extracted secret from ${target.fakeName}`,
+    //       type: "RoleHint",
+    //       isTruth: true,
+    //       round: state.round,
+    //     };
+    //     setEchoes((prev) => [...prev, echo]);
+    //   } else {
+    //     // Spy caught
+    //     players = players.map((p) =>
+    //       p.id === actorId ? { ...p, isRevealed: true } : p
+    //     );
+
+    //     actionResults.push({
+    //       actorName: actor.name,
+    //       actorFakeName: actor.fakeName,
+    //       action: "attempted to extract from",
+    //       targetName: target.name,
+    //       targetFakeName: target.fakeName,
+    //       result: "was caught and revealed",
+    //     });
+
+    //     // If no assassin or more spies remain -> game ends (Guests win)
+    //     const remainingSpies = players.filter(
+    //       (p) => p.role === "Spy" && !p.isRevealed
+    //     );
+    //     const remainingAssassins = players.filter(
+    //       (p) => p.role === "Assassin" && !p.isRevealed
+    //     );
+    //     if (remainingAssassins.length === 0 && remainingSpies.length <= 1) {
+    //       winner = "Guests";
+    //       phase = "game-over";
+    //     }
+    //   }
+    // });
+
+    return {
+      ...state,
+      players,
+      winner,
+      phase: phase || state.phase,
+      actions: {},
+      actionResults,
+    };
+  }, []);
+
+  // Start action phase (between results and next round)
+  const startActionPhase = useCallback(() => {
+    if (!isHost) return;
+
+    // Only active (not revealed) players can act
+    setGameState((prev) => ({
+      ...prev,
+      phase: "action",
+      timeRemaining: DEFAULT_GAME_CONFIG.actionDuration,
+      actions: {},
+    }));
+
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setGameState((prev) => {
+        if (prev.phase !== "action") {
+          clearInterval(timerRef.current!);
+          return prev;
+        }
+        if (prev.timeRemaining <= 0) {
+          clearInterval(timerRef.current!);
+          // Process actions then transition to results phase to show action summary
+          const processed = processActions(prev);
+          if (processed.winner && processed.phase === "game-over") {
+            return processed;
+          }
+          // Show action results for 5 seconds before starting next round
+          setTimeout(() => {
+            startRound();
+          }, 5000);
+          return { ...processed, phase: "results", timeRemaining: 5 };
+        }
+        return { ...prev, timeRemaining: prev.timeRemaining - 1 };
+      });
+    }, 1000);
+  }, [isHost, processActions, startRound]);
+
+  // Players submit actions during action phase
+  const submitAction = useCallback(
+    (
+      playerId: string,
+      action: { type: "watch" | "assassinate" | "extract"; targetId?: string }
+    ) => {
+      setGameState((prev) => {
+        if (prev.phase !== "action") return prev;
+        const next = {
+          ...prev,
+          actions: { ...(prev.actions || {}), [playerId]: action },
+        };
+
+        // If all eligible players submitted, process early
+        const activePlayers = next.players.filter((p) => !p.isRevealed);
+        const actors = activePlayers.filter(
+          (p) =>
+            p.role === "Watcher" || p.role === "Assassin" || p.role === "Spy"
+        );
+        const submittedCount = Object.keys(next.actions || {}).length;
+        if (submittedCount >= actors.length) {
+          // process immediately, then transition to results phase to show action summary
+          const processed = processActions(next);
+          if (processed.winner && processed.phase === "game-over") {
+            return processed;
+          }
+          // Show action results for 5 seconds before starting next round
+          setTimeout(() => {
+            startRound();
+          }, 5000);
+          return { ...processed, phase: "results", timeRemaining: 5 };
+        }
+        return next;
+      });
+    },
+    [processActions, startRound]
+  );
 
   const startVotingPhase = useCallback(() => {
     if (!isHost) return;
@@ -417,7 +660,9 @@ export const useGameState = (isHost: boolean) => {
       removePlayer,
       startGame,
       startRound,
+      startActionPhase,
       startVotingPhase,
+      submitAction,
       castVote,
       sendPrivateMessage,
       setGameState,
