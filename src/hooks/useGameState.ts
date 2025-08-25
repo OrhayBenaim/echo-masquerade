@@ -420,8 +420,7 @@ export const useGameState = (isHost: boolean) => {
         // If all eligible players submitted, process early
         const activePlayers = next.players.filter((p) => !p.isRevealed);
         const actors = activePlayers.filter(
-          (p) =>
-            p.role === "Watcher" || p.role === "Assassin" || p.role === "Spy"
+          (p) => p.role === "Watcher" || p.role === "Assassin"
         );
         const submittedCount = Object.keys(next.actions || {}).length;
         if (submittedCount >= actors.length) {

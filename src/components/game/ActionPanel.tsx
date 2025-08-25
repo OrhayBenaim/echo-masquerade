@@ -107,9 +107,6 @@ const ActionPanel = ({
                     disabled={alreadySubmitted}
                   >
                     <span>{p.fakeName}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {p.role}
-                    </Badge>
                   </button>
                 );
               })}
