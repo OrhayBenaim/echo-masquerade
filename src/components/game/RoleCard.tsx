@@ -7,11 +7,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Sword, Users, UserX } from "lucide-react";
+import { Eye, Sword, Users, UserX, Clock } from "lucide-react";
 
 interface RoleCardProps {
   role: Role;
   players: Player[];
+  timeRemaining?: number;
 }
 
 const roleIcons = {
@@ -28,7 +29,13 @@ const roleColors = {
   Watcher: "secondary",
 } as const;
 
-const RoleCard = ({ role, players }: RoleCardProps) => {
+const formatTime = (seconds: number) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+};
+
+const RoleCard = ({ role, players, timeRemaining = 0 }: RoleCardProps) => {
   const Icon = roleIcons[role];
 
   return (
@@ -42,6 +49,12 @@ const RoleCard = ({ role, players }: RoleCardProps) => {
           <Badge variant={roleColors[role]} className="mt-2">
             Your Secret Role
           </Badge>
+          <div className="flex items-center justify-center space-x-2 mt-3">
+            <Clock className="w-4 h-4 text-primary" />
+            <span className="font-mono text-sm">
+              Game starts in {formatTime(timeRemaining)}
+            </span>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
