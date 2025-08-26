@@ -81,7 +81,9 @@ const GameBoard = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <Badge variant="outline" className="text-lg">
-                  Day {gameState.round}
+                  {gameState.round === 0
+                    ? "First Night"
+                    : `Day ${gameState.round}`}
                 </Badge>
                 <div className="flex items-center space-x-2">
                   <Clock className="w-4 h-4" />
