@@ -173,6 +173,8 @@ export const useClient = (roomId: string, isHost: boolean) => {
         playerId: string,
         action: { type: "watch" | "assassinate" | "extract"; targetId?: string }
       ) => gameActions.submitAction(sendToHost, playerId, action),
+      skipRound: (playerId: string) =>
+        gameActions.skipRound(sendToHost, playerId),
       disconnect,
     },
   };

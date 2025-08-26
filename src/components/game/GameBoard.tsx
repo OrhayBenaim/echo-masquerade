@@ -29,6 +29,7 @@ interface GameBoardProps {
     type: "watch" | "assassinate" | "extract",
     targetId?: string
   ) => void;
+  onSkipRound?: () => void;
 }
 
 const GameBoard = ({
@@ -40,6 +41,7 @@ const GameBoard = ({
   onSendPrivateMessage,
   onCastVote,
   onSubmitAction,
+  onSkipRound,
 }: GameBoardProps) => {
   const [activeTab, setActiveTab] = useState("echoes");
 
@@ -87,6 +89,19 @@ const GameBoard = ({
                     {formatTime(gameState.timeRemaining)}
                   </span>
                 </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="w-fit"
+                  onClick={onSkipRound}
+                  disabled={gameState.skippedRound?.[currentPlayer.id]}
+                >
+                  {gameState.skippedRound?.[currentPlayer.id]
+                    ? `${Object.keys(gameState.skippedRound).length}/${
+                        activePlayers.length
+                      }`
+                    : "Skip Round"}
+                </Button>
               </div>
               <div className="flex items-center space-x-2">
                 <Users className="w-4 h-4" />
@@ -308,9 +323,11 @@ const GameBoard = ({
                       gameState.phase.slice(1)}
                   </Badge>
                   {gameState.phase === "round" && (
-                    <p className="text-sm text-muted-foreground text-center">
-                      Discuss, investigate, and prepare for voting
-                    </p>
+                    <div className="space-y-3">
+                      <p className="text-sm text-muted-foreground text-center">
+                        Discuss, investigate, and prepare for voting
+                      </p>
+                    </div>
                   )}
                   {gameState.phase === "voting" && (
                     <p className="text-sm text-muted-foreground text-center">

@@ -128,6 +128,9 @@ export const useHost = (roomId: string, isHost: boolean) => {
         case "action-submit":
           gameFunctions.handleActionSubmit(action, peerId, actions);
           break;
+        case "skip-round":
+          gameFunctions.handleSkipRound(action, peerId, actions);
+          break;
         default:
           console.warn("Unknown action type:", action.type);
       }
@@ -207,6 +210,9 @@ export const useHost = (roomId: string, isHost: boolean) => {
       ...actions,
       castVote: (targetId: string) => {
         actions.castVote(targetId, peer.current?.id || "");
+      },
+      skipRound: () => {
+        actions.registerSkipRound(peer.current?.id || "");
       },
       joinGame,
       broadcastToClients,

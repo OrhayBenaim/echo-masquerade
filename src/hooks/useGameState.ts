@@ -15,6 +15,7 @@ export const useGameState = (isHost: boolean) => {
     timeRemaining: 0,
     players: [],
     votes: {},
+    skippedRound: {},
     roomId: "",
   });
 
@@ -163,6 +164,7 @@ export const useGameState = (isHost: boolean) => {
       timeRemaining: DEFAULT_GAME_CONFIG.roundDuration,
       votes: {},
       actions: {},
+      skippedRound: {},
     }));
 
     // Start timer
@@ -652,6 +654,59 @@ export const useGameState = (isHost: boolean) => {
     }, 5000);
   }, [gameState.players, isHost, assignRoles, startRound]);
 
+  const registerSkipRound = useCallback(
+    (playerId: string) => {
+      setGameState((prev) => {
+        if (prev.phase !== "round") return prev;
+
+        const updatedSkippedRound = {
+          ...(prev.skippedRound || {}),
+          [playerId]: true,
+        };
+        const next = {
+          ...prev,
+          skippedRound: updatedSkippedRound,
+        };
+
+        // Check if all active players have skipped
+        const activePlayers = next.players.filter((p) => !p.isRevealed);
+        const skippedCount = Object.keys(updatedSkippedRound).length;
+
+        if (skippedCount >= activePlayers.length) {
+          // All players have skipped, move directly to voting phase
+          clearInterval(timerRef.current!);
+          timerRef.current = setInterval(() => {
+            setGameState((prevState) => {
+              if (prevState.phase !== "voting") {
+                clearInterval(timerRef.current!);
+                return prevState;
+              }
+
+              if (prevState.timeRemaining <= 0) {
+                clearInterval(timerRef.current!);
+                return processVotingResults(prevState);
+              }
+              return {
+                ...prevState,
+                timeRemaining: prevState.timeRemaining - 1,
+              };
+            });
+          }, 1000);
+
+          return {
+            ...next,
+            phase: "voting",
+            timeRemaining: DEFAULT_GAME_CONFIG.votingDuration,
+            skippedRound: {}, // Reset for next round
+          };
+        }
+
+        return next;
+      });
+    },
+    [processVotingResults]
+  );
+
   return {
     gameState,
     echoes,
@@ -669,6 +724,7 @@ export const useGameState = (isHost: boolean) => {
       castVote,
       sendPrivateMessage,
       setGameState,
+      registerSkipRound,
     },
   };
 };

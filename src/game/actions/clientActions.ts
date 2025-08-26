@@ -41,3 +41,13 @@ export const submitAction = (
     action,
   });
 };
+
+export const skipRound = (
+  sendToHost: (action: any) => Promise<boolean>,
+  playerId: string
+) => {
+  return sendToHost({
+    type: "skip-round",
+    playerId,
+  });
+};

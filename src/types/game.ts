@@ -25,6 +25,7 @@ export interface GameState {
   timeRemaining: number;
   players: Player[];
   votes: Record<string, string>; // playerId -> targetId
+  skippedRound?: Record<string, boolean>; // playerId -> has skipped
   actions?: Record<
     string,
     { type: "watch" | "assassinate" | "extract"; targetId?: string }
@@ -66,6 +67,8 @@ export interface GameConfig {
   votingDuration: number;
   actionDuration: number;
   maxMessageLength: number;
+  resultsDuration: number;
+  roleAssignmentDuration: number;
 }
 
 export const DEFAULT_GAME_CONFIG: GameConfig = {
@@ -76,6 +79,8 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
   actionDuration: 30,
   maxPrivateMessagesPerRound: 20,
   maxMessageLength: 140,
+  resultsDuration: 30,
+  roleAssignmentDuration: 10,
 };
 
 export const ROLE_DESCRIPTIONS = {

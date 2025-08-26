@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { GameState, Player } from "@/types/game";
+import { DEFAULT_GAME_CONFIG, GameState, Player } from "@/types/game";
 import {
   Card,
   CardContent,
@@ -25,7 +25,9 @@ const ResultsScreen = ({
   onContinueToNextRound,
   onReturnToLobby,
 }: ResultsScreenProps) => {
-  const [timeRemaining, setTimeRemaining] = useState(10);
+  const [timeRemaining, setTimeRemaining] = useState(
+    DEFAULT_GAME_CONFIG.resultsDuration
+  );
 
   // Helper function to determine if a player is a winner
   const isPlayerWinner = (

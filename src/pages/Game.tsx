@@ -7,7 +7,7 @@ import ResultsScreen from "@/components/game/ResultsScreen";
 import { useToast } from "@/hooks/use-toast";
 import { usePeerConnection } from "@/hooks/usePeerConnection";
 import { useHost } from "@/hooks/useHost";
-import { PrivateMessage } from "@/types/game";
+import { DEFAULT_GAME_CONFIG, PrivateMessage } from "@/types/game";
 
 const Game = () => {
   const { roomId } = useParams<{ roomId: string }>();
@@ -52,7 +52,7 @@ const Game = () => {
       setShowRoleCard(true);
       setTimeout(() => {
         setShowRoleCard(false);
-      }, 5000);
+      }, DEFAULT_GAME_CONFIG.roleAssignmentDuration * 1000);
     }
   }, [gameState.phase, currentPlayer?.role]);
 
@@ -76,6 +76,12 @@ const Game = () => {
 
   const handleSendPrivateMessage = (message: PrivateMessage) => {
     gameHook.actions.sendPrivateMessage(message);
+  };
+
+  const handleSkipRound = () => {
+    if (!currentPlayer) return;
+    // Both host and client have skipRound implemented now
+    gameHook.actions.skipRound?.(currentPlayer.id);
   };
 
   const handleContinueToNextRound = () => {
@@ -145,6 +151,7 @@ const Game = () => {
         onSendPrivateMessage={handleSendPrivateMessage}
         onCastVote={handleCastVote}
         onSubmitAction={handleSubmitAction}
+        onSkipRound={handleSkipRound}
       />
     );
   }
