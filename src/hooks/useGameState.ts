@@ -651,16 +651,12 @@ export const useGameState = (isHost: boolean) => {
       players: playersWithRoles,
     }));
 
-    // Move to first round after showing roles
+    // Move to action phase after showing roles (for first round)
     setTimeout(() => {
-      setGameState((prev) => ({
-        ...prev,
-        phase: "action",
-        timeRemaining: DEFAULT_GAME_CONFIG.actionDuration,
-      }));
-      startRound();
+      // Start with action phase instead of round phase for the first round
+      startActionPhase();
     }, DEFAULT_GAME_CONFIG.roleAssignmentDuration);
-  }, [gameState.players, isHost, assignRoles, startRound]);
+  }, [gameState.players, isHost, assignRoles, startActionPhase]);
 
   const registerSkipRound = useCallback(
     (playerId: string) => {
