@@ -643,7 +643,11 @@ export const useGameState = (isHost: boolean) => {
 
     // Move to first round after showing roles
     setTimeout(() => {
-      setGameState((prev) => ({ ...prev, phase: "round" }));
+      setGameState((prev) => ({
+        ...prev,
+        phase: "action",
+        timeRemaining: DEFAULT_GAME_CONFIG.actionDuration,
+      }));
       startRound();
     }, 5000);
   }, [gameState.players, isHost, assignRoles, startRound]);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GameState, Player, Echo, PrivateMessage } from "@/types/game";
 import {
   Card,
@@ -42,6 +42,25 @@ const GameBoard = ({
   onSubmitAction,
 }: GameBoardProps) => {
   const [activeTab, setActiveTab] = useState("echoes");
+
+  // Auto-navigate to the appropriate tab when game phase changes
+  useEffect(() => {
+    // Map game phases to corresponding tabs
+    const phaseToTabMap = {
+      lobby: "echoes",
+      "role-assignment": "echoes",
+      round: "echoes",
+      voting: "voting",
+      action: "action",
+      results: "echoes",
+      "game-over": "echoes",
+    };
+
+    // Set active tab based on current phase
+    if (phaseToTabMap[gameState.phase]) {
+      setActiveTab(phaseToTabMap[gameState.phase]);
+    }
+  }, [gameState.phase]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -260,7 +279,6 @@ const GameBoard = ({
                           }`}
                         >
                           {player.fakeName}
-                          {player.isHost && " 👑"}
                         </span>
                       </div>
                       {gameState.votes[player.id] &&

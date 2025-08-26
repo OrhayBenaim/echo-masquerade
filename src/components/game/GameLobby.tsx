@@ -235,7 +235,6 @@ const GameLobby = ({
                   <div className="w-3 h-3 rounded-full bg-primary animate-masquerade-pulse" />
                   <span className="text-sm font-medium truncate">
                     {player.fakeName}
-                    {player.isHost && " 👑"}
                   </span>
                 </div>
               ))}

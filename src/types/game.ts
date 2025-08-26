@@ -74,7 +74,7 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
   roundDuration: 240,
   votingDuration: 60,
   actionDuration: 30,
-  maxPrivateMessagesPerRound: 2,
+  maxPrivateMessagesPerRound: 20,
   maxMessageLength: 140,
 };
 
