@@ -81,7 +81,7 @@ const GameBoard = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <Badge variant="outline" className="text-lg">
-                  Round {gameState.round}
+                  Day {gameState.round}
                 </Badge>
                 <div className="flex items-center space-x-2">
                   <Clock className="w-4 h-4" />
@@ -319,8 +319,10 @@ const GameBoard = ({
                     variant="secondary"
                     className="w-full justify-center py-2"
                   >
-                    {gameState.phase.charAt(0).toUpperCase() +
-                      gameState.phase.slice(1)}
+                    {gameState.phase === "round"
+                      ? "Day"
+                      : gameState.phase.charAt(0).toUpperCase() +
+                        gameState.phase.slice(1)}
                   </Badge>
                   {gameState.phase === "round" && (
                     <div className="space-y-3">

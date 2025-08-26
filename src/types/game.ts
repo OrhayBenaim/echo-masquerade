@@ -18,6 +18,7 @@ export interface GameState {
     | "role-assignment"
     | "round"
     | "action"
+    | "action-results"
     | "voting"
     | "results"
     | "game-over";
@@ -68,6 +69,7 @@ export interface GameConfig {
   actionDuration: number;
   maxMessageLength: number;
   resultsDuration: number;
+  actionResultsDuration: number;
   roleAssignmentDuration: number;
 }
 
@@ -80,7 +82,8 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
   maxPrivateMessagesPerRound: 20,
   maxMessageLength: 140,
   resultsDuration: 30,
-  roleAssignmentDuration: 10,
+  actionResultsDuration: 10,
+  roleAssignmentDuration: 1,
 };
 
 export const ROLE_DESCRIPTIONS = {

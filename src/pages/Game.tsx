@@ -126,7 +126,9 @@ const Game = () => {
 
   // Show results screen
   if (
-    (gameState.phase === "results" || gameState.phase === "game-over") &&
+    (gameState.phase === "results" ||
+      gameState.phase === "action-results" ||
+      gameState.phase === "game-over") &&
     currentPlayer
   ) {
     return (

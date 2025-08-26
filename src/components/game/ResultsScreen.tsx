@@ -49,7 +49,7 @@ const ResultsScreen = ({
   };
 
   useEffect(() => {
-    if (gameState.phase === "results") {
+    if (gameState.phase === "results" || gameState.phase === "action-results") {
       const timer = setInterval(() => {
         setTimeRemaining((prev) => {
           if (prev <= 1) {
@@ -210,6 +210,73 @@ const ResultsScreen = ({
     );
   }
 
+  // Action Results Screen
+  if (gameState.phase === "action-results") {
+    return (
+      <div className="min-h-screen bg-gradient-deep p-4">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <Card className="mysterious-shadow">
+            <CardHeader className="text-center">
+              <CardTitle className="text-3xl mb-4">
+                What happened this night?
+              </CardTitle>
+              <div className="flex items-center justify-center space-x-2">
+                <Clock className="w-5 h-5" />
+                <span className="text-lg">
+                  Next day in {formatTime(timeRemaining)}
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Action Summary */}
+              {gameState.actionResults && gameState.actionResults.length > 0 ? (
+                <ActionSummary actionResults={gameState.actionResults} />
+              ) : (
+                <Card>
+                  <CardContent className="py-8 text-center">
+                    <p className="text-muted-foreground">
+                      No actions were performed this round
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Survivors */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Users className="w-5 h-5" />
+                    <span>Active Players ({activePlayers.length})</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {activePlayers.map((player) => (
+                      <div
+                        key={player.id}
+                        className="flex items-center justify-between p-2 bg-muted/20 rounded"
+                      >
+                        <span
+                          className={
+                            player.id === currentPlayer.id ? "font-bold" : ""
+                          }
+                        >
+                          {player.fakeName}{" "}
+                          {player.id === currentPlayer.id && "(You)"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Voting Results Screen
   return (
     <div className="min-h-screen bg-gradient-deep p-4">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -342,11 +409,6 @@ const ResultsScreen = ({
                 </div>
               </CardContent>
             </Card>
-
-            {/* Action Summary */}
-            {gameState.actionResults && gameState.actionResults.length > 0 && (
-              <ActionSummary actionResults={gameState.actionResults} />
-            )}
           </CardContent>
         </Card>
       </div>

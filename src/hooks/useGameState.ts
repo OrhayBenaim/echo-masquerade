@@ -390,16 +390,20 @@ export const useGameState = (isHost: boolean) => {
         }
         if (prev.timeRemaining <= 0) {
           clearInterval(timerRef.current!);
-          // Process actions then transition to results phase to show action summary
+          // Process actions then transition to action-results phase to show action summary
           const processed = processActions(prev);
           if (processed.winner && processed.phase === "game-over") {
             return processed;
           }
-          // Show action results for 5 seconds before starting next round
+          // Show action results before starting next round
           setTimeout(() => {
             startRound();
-          }, 5000);
-          return { ...processed, phase: "results", timeRemaining: 5 };
+          }, DEFAULT_GAME_CONFIG.actionResultsDuration * 1000);
+          return {
+            ...processed,
+            phase: "action-results",
+            timeRemaining: DEFAULT_GAME_CONFIG.actionResultsDuration,
+          };
         }
         return { ...prev, timeRemaining: prev.timeRemaining - 1 };
       });
@@ -426,7 +430,7 @@ export const useGameState = (isHost: boolean) => {
         );
         const submittedCount = Object.keys(next.actions || {}).length;
         if (submittedCount >= actors.length) {
-          // process immediately, then transition to results phase to show action summary
+          // process immediately, then transition to action-results phase to show action summary
           const processed = processActions(next);
           if (processed.winner && processed.phase === "game-over") {
             return processed;
@@ -434,8 +438,12 @@ export const useGameState = (isHost: boolean) => {
           // Show action results for 5 seconds before starting next round
           setTimeout(() => {
             startRound();
-          }, 5000);
-          return { ...processed, phase: "results", timeRemaining: 5 };
+          }, DEFAULT_GAME_CONFIG.actionResultsDuration * 1000);
+          return {
+            ...processed,
+            phase: "action-results",
+            timeRemaining: DEFAULT_GAME_CONFIG.actionResultsDuration,
+          };
         }
         return next;
       });
@@ -651,7 +659,7 @@ export const useGameState = (isHost: boolean) => {
         timeRemaining: DEFAULT_GAME_CONFIG.actionDuration,
       }));
       startRound();
-    }, 5000);
+    }, DEFAULT_GAME_CONFIG.roleAssignmentDuration);
   }, [gameState.players, isHost, assignRoles, startRound]);
 
   const registerSkipRound = useCallback(
