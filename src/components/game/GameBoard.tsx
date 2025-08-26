@@ -89,19 +89,21 @@ const GameBoard = ({
                     {formatTime(gameState.timeRemaining)}
                   </span>
                 </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="w-fit"
-                  onClick={onSkipRound}
-                  disabled={gameState.skippedRound?.[currentPlayer.id]}
-                >
-                  {gameState.skippedRound?.[currentPlayer.id]
-                    ? `${Object.keys(gameState.skippedRound).length}/${
-                        activePlayers.length
-                      }`
-                    : "Skip Round"}
-                </Button>
+                {gameState.phase === "round" && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="w-fit"
+                    onClick={onSkipRound}
+                    disabled={gameState.skippedRound?.[currentPlayer.id]}
+                  >
+                    {gameState.skippedRound?.[currentPlayer.id]
+                      ? `${Object.keys(gameState.skippedRound).length}/${
+                          activePlayers.length
+                        }`
+                      : "Skip Round"}
+                  </Button>
+                )}
               </div>
               <div className="flex items-center space-x-2">
                 <Users className="w-4 h-4" />
