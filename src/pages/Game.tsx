@@ -50,9 +50,8 @@ const Game = () => {
   useEffect(() => {
     if (gameState.phase === "role-assignment" && currentPlayer?.role) {
       setShowRoleCard(true);
-      setTimeout(() => {
-        setShowRoleCard(false);
-      }, DEFAULT_GAME_CONFIG.roleAssignmentDuration * 1000);
+    } else if (gameState.phase !== "role-assignment" && showRoleCard) {
+      setShowRoleCard(false);
     }
   }, [gameState.phase, currentPlayer?.role]);
 

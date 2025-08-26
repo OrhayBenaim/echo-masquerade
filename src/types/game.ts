@@ -83,7 +83,7 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
   maxMessageLength: 140,
   resultsDuration: 30,
   actionResultsDuration: 10,
-  roleAssignmentDuration: 1,
+  roleAssignmentDuration: 15,
 };
 
 export const ROLE_DESCRIPTIONS = {

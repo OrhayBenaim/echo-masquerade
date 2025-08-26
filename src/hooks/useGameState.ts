@@ -649,13 +649,28 @@ export const useGameState = (isHost: boolean) => {
       ...prev,
       phase: "role-assignment",
       players: playersWithRoles,
+      timeRemaining: DEFAULT_GAME_CONFIG.roleAssignmentDuration,
     }));
 
-    // Move to action phase after showing roles (for first round)
-    setTimeout(() => {
-      // Start with action phase instead of round phase for the first round
-      startActionPhase();
-    }, DEFAULT_GAME_CONFIG.roleAssignmentDuration);
+    // Start a timer for role-assignment phase
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setGameState((prev) => {
+        if (prev.phase !== "role-assignment") {
+          clearInterval(timerRef.current!);
+          return prev;
+        }
+
+        if (prev.timeRemaining <= 0) {
+          clearInterval(timerRef.current!);
+          // Start with action phase instead of round phase for the first round
+          startActionPhase();
+          return prev;
+        }
+
+        return { ...prev, timeRemaining: prev.timeRemaining - 1 };
+      });
+    }, 1000);
   }, [gameState.players, isHost, assignRoles, startActionPhase]);
 
   const registerSkipRound = useCallback(
