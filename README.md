@@ -2,13 +2,16 @@
 
 A social deduction web game set in a mysterious masquerade ball. Players take on secret roles and must bluff, deceive, and deduce to achieve their hidden objectives.
 
+![Game Overview](docs/images/game-overview.png)
+_The mysterious masquerade ball awaits..._
+
 ---
 
 ## 🎭 Game Overview
 
 - **Setting**: A masquerade ball full of hidden identities.
 - **Players**: Each player is secretly assigned a role with unique objectives.
-- **Objective**: Use clues, communication, and deception to survive or accomplish your role’s win condition.
+- **Objective**: Use clues, communication, and deception to survive or accomplish your role's win condition.
 
 ---
 
@@ -38,7 +41,7 @@ Each round (3–5 minutes) has 3 phases:
 
 ### The Echoes Mechanic
 
-- At the start of each round, all players receive a cryptic “Echo” message.
+- At the start of each round, all players receive a cryptic "Echo" message.
 - Echoes may contain **truths, lies, or irrelevant noise**, creating paranoia.
 
 ---
@@ -97,7 +100,34 @@ Each round (3–5 minutes) has 3 phases:
 ## 🚀 How to Run (Development)
 
 1. Clone this repository:
+
    ```bash
    git clone https://github.com/yourusername/echoes-of-the-masquerade.git
    cd echoes-of-the-masquerade
    ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+4. Open your browser and navigate to `http://localhost:8080`
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
